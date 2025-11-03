@@ -23,5 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-#api
-.env
+# Environment files
+.env*
+!.env.example
