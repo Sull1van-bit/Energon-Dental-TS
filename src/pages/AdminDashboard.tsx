@@ -1,10 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "@/hooks/useAuth";
+import Products from "@/components/ui/products";
 
 const AdminDashboard = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const [selectedMenu, setSelectedMenu] = useState<'products' | 'users'>('products');
 
   useEffect(() => {
     if (!loading && !user) {
@@ -31,65 +33,73 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-              {user && (
-                <p className="text-sm text-gray-600 mt-1">
-                  Selamat datang, <span className="font-semibold">{user.email}</span>
-                </p>
-              )}
-            </div>
-            <div className="flex items-center space-x-4">
-              {user && (
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{user.email}</p>
-                  <p className="text-xs text-gray-500">Administrator</p>
-                </div>
-              )}
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Logout
-              </button>
-            </div>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white h-screen shadow-md flex flex-col justify-between">
+        <div>
+          <div className="p-6 border-b">
+            <h1 className="text-2xl font-bold text-indigo-700">Admin Panel</h1>
+            {user && (
+              <p className="text-xs text-gray-500 mt-1">{user.email}</p>
+            )}
           </div>
+          <nav className="mt-8">
+            <ul>
+              <li>
+                <button
+                  className={`w-full text-left py-3 px-6 flex items-center transition bg-transparent hover:bg-orange-300 font-medium ${selectedMenu === 'products' ? 'bg-[#ff6600] text-white' : 'text-gray-600'}`}
+                  onClick={() => setSelectedMenu('products')}
+                >
+                  Products
+                </button>
+              </li>
+              <li>
+                <button
+                  className={`w-full text-left py-3 px-6 flex items-center transition bg-transparent hover:bg-orange-300 font-medium ${selectedMenu === 'users' ? 'bg-[#ff6600] text-white' : 'text-gray-600'}`}
+                  onClick={() => setSelectedMenu('users')}
+                >
+                  Users
+                </button>
+              </li>
+            </ul>
+          </nav>
         </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
-              <button
-                className="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600"
-              >
-                Products
-              </button>
-              <button
-                className="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500"
-              >
-                Events
-              </button>
-            </nav>
-          </div>
+        <div className="p-6 border-t">
+          <button
+            onClick={handleLogout}
+            className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+          >
+            Logout
+          </button>
         </div>
+      </aside>
 
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
+      {/* Main Content */}
+      <main className="flex-1 p-8 overflow-y-auto">
+        {selectedMenu === 'products' && (
+          <section>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Products Management</h3>
+              <h2 className="text-2xl font-bold text-gray-900">Products Management</h2>
               <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 Add New Product
               </button>
             </div>
-            <p className="text-gray-600">Implement product listing here.</p>
-          </div>
-        </div>
+            <div className="bg-white shadow rounded-lg p-6">
+              <Products />
+            </div>
+          </section>
+        )}
+        {selectedMenu === 'users' && (
+          <section>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
+            </div>
+            <div className="bg-white shadow rounded-lg p-6 min-h-[200px] flex items-center justify-center text-gray-400">
+              {/* TODO: Ganti dengan komponen tabel user nanti */}
+              User table coming soon...
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );
