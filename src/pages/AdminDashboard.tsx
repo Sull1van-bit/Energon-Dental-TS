@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "@/hooks/useAuth";
 import Products from "@/components/ui/products";
+import CreateProducts from "./CreateProducts";
 
 const AdminDashboard = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [selectedMenu, setSelectedMenu] = useState<'products' | 'users'>('products');
+  const [openCreateProductModal, setOpenCreateProductModal] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -47,7 +49,7 @@ const AdminDashboard = () => {
             <ul>
               <li>
                 <button
-                  className={`w-full text-left py-3 px-6 flex items-center transition bg-transparent hover:bg-orange-300 font-medium ${selectedMenu === 'products' ? 'bg-[#ff6600] text-white' : 'text-gray-600'}`}
+                  className={`w-full text-left py-3 px-6 flex items-center transition bg-transparent hover:bg-orange-300 font-medium ${selectedMenu === 'products' ? 'bg-[#ff6600] text-white' : 'bg-[#ff6600] text-gray-600'}`}
                   onClick={() => setSelectedMenu('products')}
                 >
                   Products
@@ -80,9 +82,11 @@ const AdminDashboard = () => {
           <section>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-gray-900">Products Management</h2>
-              <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={() => setOpenCreateProductModal(true)}>
                 Add New Product
               </button>
+              <CreateProducts open={openCreateProductModal} onClose={() => setOpenCreateProductModal(false)} />
+
             </div>
             <div className="bg-white shadow rounded-lg p-6">
               <Products />

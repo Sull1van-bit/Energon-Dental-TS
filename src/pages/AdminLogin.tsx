@@ -6,7 +6,7 @@ const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const { signInWithPassword, error, loading, user } = useAuth();
+  const { signIn, error, loading, user } = useAuth();
 
   useEffect(() => {
     if (user) {
@@ -16,7 +16,7 @@ const AdminLogin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { user, error } = await signInWithPassword(email, password);
+    const { user, error } = await signIn(email, password);
     if (!error && user) {
       navigate("/admin", { replace: true });
     }
@@ -31,13 +31,11 @@ const AdminLogin = () => {
           </button>
         </Link>
       </div>
-
       <div className="flex items-center h-screen w-full">
         <div className="w-full bg-white rounded shadow-lg p-8 m-4 md:max-w-sm md:mx-auto">
           <span className="block w-full text-xl uppercase font-bold mb-4">
             {user ? "Login Berhasil!" : "Login"}
           </span>
-
           <form className="mb-4" onSubmit={handleSubmit}>
             <div className="mb-4 md:w-full">
               <label htmlFor="email" className="block text-xs mb-1">
