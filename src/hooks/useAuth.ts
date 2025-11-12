@@ -1,69 +1,95 @@
-import { useEffect, useState, useCallback } from "react";
-import type { User } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase";
+import { useEffect, useState, useCallback } from 'react';
+import { auth, db } from '@/lib/firebase';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, User as FirebaseUser } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [role, setRole] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Listen for user state changes
   useEffect(() => {
-    let isMounted = true;
-
-    const init = async () => {
-      setLoading(true);
-      // Fetch current user session without using throw/catch for local flow control
-      const { data, error: getUserError } = await supabase.auth.getUser();
-
-      if (!isMounted) return;
-
-      if (getUserError) {
-        setError(getUserError.message);
-        setUser(null);
-      } else {
-        setUser(data.user ?? null);
-      }
-
+    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
       setLoading(false);
-    };
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    void init();
-
-    return () => {
-      isMounted = false;
-      sub.subscription.unsubscribe();
-    };
-  }, []);
-
-  const signInWithPassword = useCallback(
-    async (email: string, password: string) => {
-      setError(null);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) {
-        setError(error.message);
-        return { user: null, error } as const;
+      if (firebaseUser) {
+        await fetchRole(firebaseUser.uid);
+      } else {
+        setRole("");
       }
-      setUser(data.user);
-      return { user: data.user, error: null } as const;
-    },
-    []
-  );
-
-  const signOut = useCallback(async () => {
-    setError(null);
-    const { error } = await supabase.auth.signOut();
-    if (error) setError(error.message);
-    return { error } as const;
+    });
+    return () => unsub();
   }, []);
 
-  return { user, loading, error, signInWithPassword, signOut } as const;
+  // Fetch user role from Firestore collection 'users'
+  const fetchRole = useCallback(async (uid: string) => {
+    const docRef = doc(db, 'users', uid);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      setRole((snap.data().role ?? "").toLowerCase());
+    } else {
+      setRole("");
+    }
+  }, []);
+
+  const signIn = useCallback(async (email: string, password: string) => {
+    setError(null);
+    try {
+      const res = await signInWithEmailAndPassword(auth, email, password);
+      setUser(res.user);
+      await fetchRole(res.user.uid);
+      return { user: res.user, error: null } as const;
+    } catch (err: any) {
+      setError(err.message || 'Login gagal.');
+      setUser(null);
+      setRole("");
+      return { user: null, error: err } as const;
+    }
+  }, [fetchRole]);
+
+  const signUp = useCallback(async (email: string, password: string, role_: string = "owner") => {
+    setError(null);
+    try {
+      const { user } = await createUserWithEmailAndPassword(auth, email, password);
+      // Buat profile user di firestore (collection users), default role: owner (bisa diganti oleh admin nanti)
+      await setDoc(doc(db, 'users', user.uid), {
+        email: user.email,
+        role: role_,
+        created_at: new Date().toISOString()
+      });
+      setUser(user);
+      setRole(role_);
+      return { user, error: null } as const;
+    } catch (err: any) {
+      setError(err.message || 'Sign up gagal.');
+      return { user: null, error: err } as const;
+    }
+  }, []);
+
+  const doSignOut = useCallback(async () => {
+    setError(null);
+    try {
+      await signOut(auth);
+      setUser(null);
+      setRole("");
+      return { error: null };
+    } catch (err: any) {
+      setError(err.message);
+      return { error: err };
+    }
+  }, []);
+
+  return {
+    user,
+    role,
+    loading,
+    error,
+    signIn,
+    signUp,
+    signOut: doSignOut
+  } as const;
 }
 
 export default useAuth;
