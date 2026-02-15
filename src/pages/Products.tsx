@@ -11,6 +11,7 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import productsData from "@/data/products.json";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface Product {
   id: number;
@@ -24,13 +25,25 @@ type ProductsData = {
   [key: string]: Product[];
 };
 
+const INITIAL_VISIBLE = 4;
+
 const Products = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [expandedBrands, setExpandedBrands] = useState<Set<string>>(new Set());
 
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
     setIsDialogOpen(true);
+  };
+
+  const toggleBrand = (brand: string) => {
+    setExpandedBrands((prev) => {
+      const next = new Set(prev);
+      if (next.has(brand)) next.delete(brand);
+      else next.add(brand);
+      return next;
+    });
   };
 
   const handleWhatsAppOrder = () => {
@@ -54,34 +67,63 @@ const Products = () => {
           </p>
         </div>
 
-        {Object.entries(productsData as ProductsData).map(([category, products], categoryIndex) => (
-          <div key={category} className="mb-16" style={{ animationDelay: `${categoryIndex * 0.1}s` }}>
-            <h2 className="text-3xl font-bold mb-8 text-foreground">{category}</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product, index) => (
-                <Card
-                  key={product.id}
-                  className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105 animate-fade-in"
-                  style={{ animationDelay: `${(categoryIndex * 0.1) + (index * 0.1)}s` }}
-                  onClick={() => handleProductClick(product)}
-                >
-                  <CardContent className="p-0">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-48 object-cover rounded-t-lg"
-                    />
-                    <div className="p-6">
-                      <h3 className="text-xl font-semibold mb-2 text-foreground">{product.name}</h3>
-                      <p className="text-muted-foreground text-sm line-clamp-2">{product.description}</p>
-                      <p className="text-primary font-semibold mt-4">{product.price}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+        {Object.entries(productsData as ProductsData).map(([brand, products], brandIndex) => {
+          const isExpanded = expandedBrands.has(brand);
+          const hasMore = products.length > INITIAL_VISIBLE;
+          const visibleProducts = hasMore && !isExpanded
+            ? products.slice(0, INITIAL_VISIBLE)
+            : products;
+
+          return (
+            <div key={brand} className="mb-16" style={{ animationDelay: `${brandIndex * 0.1}s` }}>
+              <h2 className="text-3xl font-bold mb-8 text-foreground">{brand}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {visibleProducts.map((product, index) => (
+                  <Card
+                    key={product.id}
+                    className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105 animate-fade-in"
+                    style={{ animationDelay: `${(brandIndex * 0.1) + (index * 0.05)}s` }}
+                    onClick={() => handleProductClick(product)}
+                  >
+                    <CardContent className="p-0">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-48 object-contain object-center rounded-t-lg"
+                      />
+                      <div className="p-6">
+                        <h3 className="text-xl font-semibold mb-2 text-foreground">{product.name}</h3>
+                        <p className="text-muted-foreground text-sm line-clamp-2">{product.description}</p>
+                        <p className="text-primary font-semibold mt-4">{product.price}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              {hasMore && (
+                <div className="mt-6 flex justify-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => toggleBrand(brand)}
+                    className="gap-2"
+                  >
+                    {isExpanded ? (
+                      <>
+                        <ChevronUp className="h-4 w-4" />
+                        See less
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-4 w-4" />
+                        See more ({products.length - INITIAL_VISIBLE} more products)
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </main>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -94,7 +136,7 @@ const Products = () => {
               <img
                 src={selectedProduct.image}
                 alt={selectedProduct.name}
-                className="w-full h-64 object-cover rounded-lg my-4"
+                className="w-full h-64 object-contain object-center rounded-lg my-4"
               />
               <DialogDescription className="text-base">
                 {selectedProduct.description}
