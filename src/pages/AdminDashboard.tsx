@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import useAuth from "@/hooks/useAuth";
 import Products from "@/components/ui/products";
 import CreateProducts from "./CreateProducts";
+import ManageBrandLogos from "@/components/admin/ManageBrandLogos";
 
 const AdminDashboard = () => {
   const { user, loading, signOut } = useAuth();
@@ -90,6 +91,7 @@ const AdminDashboard = () => {
             </div>
             <div className="bg-white shadow rounded-lg p-6">
               <Products />
+              <ManageBrandLogos />
             </div>
           </section>
         )}

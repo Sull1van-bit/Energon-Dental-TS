@@ -10,27 +10,29 @@ import {
 } from "@/components/ui/dialog";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import productsData from "@/data/products.json";
+import { useProducts, type ProductItem, type ProductsData } from "@/hooks/useProducts";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: string;
-  image: string;
-}
-
-type ProductsData = {
-  [key: string]: Product[];
-};
+const INITIAL_VISIBLE = 4;
 
 const Products = () => {
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const { data: productsData, loading } = useProducts();
+  const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [expandedBrands, setExpandedBrands] = useState<Set<string>>(new Set());
 
-  const handleProductClick = (product: Product) => {
+  const handleProductClick = (product: ProductItem) => {
     setSelectedProduct(product);
     setIsDialogOpen(true);
+  };
+
+  const toggleBrand = (brand: string) => {
+    setExpandedBrands((prev) => {
+      const next = new Set(prev);
+      if (next.has(brand)) next.delete(brand);
+      else next.add(brand);
+      return next;
+    });
   };
 
   const handleWhatsAppOrder = () => {
@@ -54,34 +56,83 @@ const Products = () => {
           </p>
         </div>
 
-        {Object.entries(productsData as ProductsData).map(([category, products], categoryIndex) => (
-          <div key={category} className="mb-16" style={{ animationDelay: `${categoryIndex * 0.1}s` }}>
-            <h2 className="text-3xl font-bold mb-8 text-foreground">{category}</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product, index) => (
-                <Card
-                  key={product.id}
-                  className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105 animate-fade-in"
-                  style={{ animationDelay: `${(categoryIndex * 0.1) + (index * 0.1)}s` }}
-                  onClick={() => handleProductClick(product)}
-                >
-                  <CardContent className="p-0">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-48 object-cover rounded-t-lg"
-                    />
-                    <div className="p-6">
-                      <h3 className="text-xl font-semibold mb-2 text-foreground">{product.name}</h3>
-                      <p className="text-muted-foreground text-sm line-clamp-2">{product.description}</p>
-                      <p className="text-primary font-semibold mt-4">{product.price}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+        {loading && (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
           </div>
-        ))}
+        )}
+
+        {!loading && productsData && (Object.entries(productsData).filter(
+          (entry): entry is [string, ProductItem[]] =>
+            entry[0] !== "brandLogos" && Array.isArray(entry[1])
+        ) as [string, ProductItem[]][]).map(([brand, products], brandIndex) => {
+          const isExpanded = expandedBrands.has(brand);
+          const hasMore = products.length > INITIAL_VISIBLE;
+          const visibleProducts = hasMore && !isExpanded
+            ? products.slice(0, INITIAL_VISIBLE)
+            : products;
+          const brandLogo = (productsData as ProductsData).brandLogos?.[brand] ?? "/placeholder.svg";
+
+          return (
+            <div key={brand} className="mb-16" style={{ animationDelay: `${brandIndex * 0.1}s` }}>
+              <div className="flex items-center gap-4 mb-8">
+                <img
+                  src={brandLogo}
+                  alt={`${brand} logo`}
+                  className="h-14 w-auto max-w-[180px] object-contain object-left"
+                />
+                <h2 className="text-3xl font-bold text-foreground">{brand}</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {visibleProducts.map((product, index) => (
+                  <Card
+                    key={product.id}
+                    className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105 animate-fade-in"
+                    style={{ animationDelay: `${(brandIndex * 0.1) + (index * 0.05)}s` }}
+                    onClick={() => handleProductClick(product)}
+                  >
+                    <CardContent className="p-0">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-48 object-contain object-center rounded-t-lg"
+                      />
+                      <div className="p-6">
+                        <h3 className="text-xl font-semibold mb-2 text-foreground">{product.name}</h3>
+                        <p className="text-muted-foreground text-sm line-clamp-2">{product.description}</p>
+                        <p className="text-primary font-semibold mt-4">{product.price}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              {hasMore && (
+                <div className="mt-6 flex justify-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => toggleBrand(brand)}
+                    className="gap-2"
+                  >
+                    {isExpanded ? (
+                      <>
+                        <ChevronUp className="h-4 w-4" />
+                        See less
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-4 w-4" />
+                        See more ({products.length - INITIAL_VISIBLE} more products)
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {!loading && productsData && Object.keys(productsData).filter((k) => k !== "brandLogos" && Array.isArray(productsData[k])).length === 0 && (
+          <p className="text-center text-muted-foreground py-12">Belum ada produk. Admin dapat menambah produk dari dashboard.</p>
+        )}
       </main>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -94,7 +145,7 @@ const Products = () => {
               <img
                 src={selectedProduct.image}
                 alt={selectedProduct.name}
-                className="w-full h-64 object-cover rounded-lg my-4"
+                className="w-full h-64 object-contain object-center rounded-lg my-4"
               />
               <DialogDescription className="text-base">
                 {selectedProduct.description}

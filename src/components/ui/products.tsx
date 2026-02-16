@@ -3,12 +3,13 @@ import { db } from '@/lib/firebase';
 import { collection, onSnapshot, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
-interface Product {
+export interface Product {
   id: string;
   name: string;
   description?: string;
   price?: string;
   image?: string;
+  brand?: string;
   createdAt?: string;
 }
 
@@ -72,6 +73,7 @@ const Products = () => {
         <thead className="bg-[#000099] text-white">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">No</th>
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">Brand</th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">Nama Produk</th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">Deskripsi</th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">Harga</th>
@@ -83,6 +85,7 @@ const Products = () => {
           {products.map((product, index) => (
             <tr key={product.id} className="hover:bg-gray-50 transition-colors duration-200">
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#000099]">{index + 1}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">{product.brand || 'Umum'}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{product.name}</td>
               <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">{product.description || '-'}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-[#ff6600]">{product.price || 'Contact for pricing'}</td>

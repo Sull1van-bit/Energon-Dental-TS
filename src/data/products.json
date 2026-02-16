@@ -1,81 +1,28 @@
 {
-  "Diagnostic Equipment": [
-    {
-      "id": 1,
-      "name": "Digital X-Ray System",
-      "description": "High-resolution digital X-ray imaging system with advanced diagnostic capabilities. Features instant image processing, minimal radiation exposure, and seamless integration with practice management software.",
-      "price": "Contact for pricing",
-      "image": "/placeholder.svg"
-    },
-    {
-      "id": 2,
-      "name": "Intraoral Camera",
-      "description": "Premium intraoral camera with HD imaging and LED illumination. Perfect for patient education and detailed diagnosis. Includes wireless connectivity and ergonomic design.",
-      "price": "Contact for pricing",
-      "image": "/placeholder.svg"
-    },
-    {
-      "id": 3,
-      "name": "Dental Microscope",
-      "description": "Professional-grade dental microscope with superior magnification and LED lighting. Ideal for endodontic procedures and detailed restorative work.",
-      "price": "Contact for pricing",
-      "image": "/placeholder.svg"
-    }
+  "brandLogos": {
+    "Westlake": "/placeholder.svg",
+    "Nanofill": "/placeholder.svg",
+    "MLG": "/placeholder.svg"
+  },
+  "Westlake": [
+    {"id":1,"name":"Digital X-Ray System","description":"High-resolution digital X-ray imaging system with advanced diagnostic capabilities. Features instant image processing, minimal radiation exposure, and seamless integration with practice management software.","price":"Contact for pricing","image":"/barang1.jpeg"},
+    {"id":2,"name":"Intraoral Camera","description":"Premium intraoral camera with HD imaging and LED illumination. Perfect for patient education and detailed diagnosis. Includes wireless connectivity and ergonomic design.","price":"Contact for pricing","image":"/assets/products/barang2.jpeg"},
+    {"id":3,"name":"Dental Microscope","description":"Professional-grade dental microscope with superior magnification and LED lighting. Ideal for endodontic procedures and detailed restorative work.","price":"Contact for pricing","image":"/placeholder.svg"},
+    {"id":4,"name":"Dental Unit Chair","description":"State-of-the-art dental chair with ergonomic design and multiple positioning options. Features integrated LED light, touch controls, and durable upholstery.","price":"Contact for pricing","image":"/placeholder.svg"},
+    {"id":5,"name":"Ultrasonic Scaler","description":"Professional ultrasonic scaler for efficient calculus removal. Features adjustable power settings, multiple tip options, and water flow control.","price":"Contact for pricing","image":"/placeholder.svg"},
+    {"id":6,"name":"Composite Curing Light","description":"High-intensity LED curing light with multiple curing modes. Provides fast and reliable polymerization with ergonomic wireless design.","price":"Contact for pricing","image":"/placeholder.svg"}
   ],
-  "Treatment Equipment": [
-    {
-      "id": 4,
-      "name": "Dental Unit Chair",
-      "description": "State-of-the-art dental chair with ergonomic design and multiple positioning options. Features integrated LED light, touch controls, and durable upholstery.",
-      "price": "Contact for pricing",
-      "image": "/placeholder.svg"
-    },
-    {
-      "id": 5,
-      "name": "Ultrasonic Scaler",
-      "description": "Professional ultrasonic scaler for efficient calculus removal. Features adjustable power settings, multiple tip options, and water flow control.",
-      "price": "Contact for pricing",
-      "image": "/placeholder.svg"
-    },
-    {
-      "id": 6,
-      "name": "Composite Curing Light",
-      "description": "High-intensity LED curing light with multiple curing modes. Provides fast and reliable polymerization with ergonomic wireless design.",
-      "price": "Contact for pricing",
-      "image": "/placeholder.svg"
-    }
+  "Nanofill": [
+    {"id":7,"name":"Autoclave Sterilizer","description":"Advanced autoclave sterilizer with rapid cycle times and large capacity. Features automatic door locking, digital display, and comprehensive safety systems.","price":"Contact for pricing","image":"/placeholder.svg"},
+    {"id":8,"name":"Ultrasonic Cleaner","description":"High-frequency ultrasonic cleaner for effective instrument cleaning. Features adjustable timer, temperature control, and stainless steel tank.","price":"Contact for pricing","image":"/placeholder.svg"},
+    {"id":9,"name":"Surgical Instrument Set","description":"Complete set of premium surgical instruments including forceps, elevators, and scalpels. Made from high-grade stainless steel for durability and precision.","price":"Contact for pricing","image":"/placeholder.svg"},
+    {"id":10,"name":"Restorative Kit","description":"Professional restorative instrument kit with excavators, carvers, and burnishers. Ergonomic handles for comfortable extended use.","price":"Contact for pricing","image":"/placeholder.svg"}
   ],
-  "Sterilization": [
-    {
-      "id": 7,
-      "name": "Autoclave Sterilizer",
-      "description": "Advanced autoclave sterilizer with rapid cycle times and large capacity. Features automatic door locking, digital display, and comprehensive safety systems.",
-      "price": "Contact for pricing",
-      "image": "/placeholder.svg"
-    },
-    {
-      "id": 8,
-      "name": "Ultrasonic Cleaner",
-      "description": "High-frequency ultrasonic cleaner for effective instrument cleaning. Features adjustable timer, temperature control, and stainless steel tank.",
-      "price": "Contact for pricing",
-      "image": "/placeholder.svg"
-    }
-  ],
-  "Hand Instruments": [
-    {
-      "id": 9,
-      "name": "Surgical Instrument Set",
-      "description": "Complete set of premium surgical instruments including forceps, elevators, and scalpels. Made from high-grade stainless steel for durability and precision.",
-      "price": "Contact for pricing",
-      "image": "/placeholder.svg"
-    },
-    {
-      "id": 10,
-      "name": "Restorative Kit",
-      "description": "Professional restorative instrument kit with excavators, carvers, and burnishers. Ergonomic handles for comfortable extended use.",
-      "price": "Contact for pricing",
-      "image": "/placeholder.svg"
-    }
+  "MLG": [
+    {"id":11,"name":"MLG Handpiece","description":"High-speed dental handpiece with precision engineering. Smooth operation and durability for daily practice.","price":"Contact for pricing","image":"/placeholder.svg"},
+    {"id":12,"name":"MLG Suction System","description":"Efficient suction system for dental procedures. Quiet operation and easy maintenance.","price":"Contact for pricing","image":"/placeholder.svg"},
+    {"id":13,"name":"MLG Curing Lamp","description":"LED curing lamp with multiple intensity settings. Ideal for composite and bonding procedures.","price":"Contact for pricing","image":"/placeholder.svg"},
+    {"id":14,"name":"MLG Sterilization Tray","description":"Stainless steel sterilization tray set. Compatible with standard autoclaves.","price":"Contact for pricing","image":"/placeholder.svg"},
+    {"id":15,"name":"MLG Diagnostic Kit","description":"Complete diagnostic kit with mirror, explorer, and probe. Ergonomic design for comfort.","price":"Contact for pricing","image":"/placeholder.svg"}
   ]
 }
-

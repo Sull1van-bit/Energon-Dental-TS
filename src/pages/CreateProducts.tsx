@@ -1,38 +1,59 @@
-import { useRef, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { db } from '@/lib/firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs } from 'firebase/firestore';
 
 interface CreateProductsProps {
   open: boolean;
   onClose?: () => void;
+  existingBrands?: string[];
 }
 
-const CreateProducts = ({ open, onClose }: CreateProductsProps) => {
+const CreateProducts = ({ open, onClose, existingBrands: existingBrandsProp = [] }: CreateProductsProps) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [brand, setBrand] = useState('');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fetchedBrands, setFetchedBrands] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    getDocs(collection(db, 'products'))
+      .then((snap) => {
+        const brands = new Set<string>();
+        snap.docs.forEach((d) => {
+          const b = (d.data() as { brand?: string }).brand;
+          if (b && b.trim()) brands.add(b.trim());
+        });
+        setFetchedBrands(Array.from(brands).sort());
+      })
+      .catch(() => setFetchedBrands([]));
+  }, [open]);
+
+  const existingBrands = existingBrandsProp.length > 0 ? existingBrandsProp : fetchedBrands;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     if (!name || !description || !price || !imageUrl) {
-      setError('All fields are required!');
+      setError('Nama, deskripsi, harga, dan gambar wajib diisi!');
       return;
     }
+    const brandName = brand.trim() || 'Umum';
     setUploading(true);
     try {
-      // Simpan data produk ke Firestore
       await addDoc(collection(db, 'products'), {
-        name: name,
-        description,
-        price,
-        image: imageUrl,
+        name: name.trim(),
+        description: description.trim(),
+        price: price.trim(),
+        image: imageUrl.trim(),
+        brand: brandName,
         createdAt: new Date().toISOString()
       });
       // alert('Produk berhasil ditambahkan!');
@@ -41,6 +62,7 @@ const CreateProducts = ({ open, onClose }: CreateProductsProps) => {
       setDescription('');
       setPrice('');
       setImageUrl('');
+      setBrand('');
     } catch (err: any) {
       setError(err.message || 'Gagal tambah produk.');
     } finally {
@@ -53,33 +75,61 @@ const CreateProducts = ({ open, onClose }: CreateProductsProps) => {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Tambah Produk Baru</DialogTitle>
-          <DialogDescription>Isi data lengkap produk dan url gambar produk (gunakan url image direct). Upload akan difasilitasi nanti.</DialogDescription>
+          <DialogDescription>Isi data lengkap produk. Produk akan tampil di halaman Products sesuai brand yang dipilih.</DialogDescription>
         </DialogHeader>
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <Input
-            placeholder="Product Name"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            required
-          />
-          <Input
-            placeholder="Price (e.g. 100000)"
-            value={price}
-            onChange={e => setPrice(e.target.value)}
-            required
-          />
-          <Input
-            placeholder="Description"
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            required
-          />
-          <Input
-            placeholder="Image URL (https://...)"
-            value={imageUrl}
-            onChange={e => setImageUrl(e.target.value)}
-            required
-          />
+          <div className="space-y-2">
+            <Label>Nama Produk</Label>
+            <Input
+              placeholder="Contoh: Digital X-Ray System"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Brand</Label>
+            <Input
+              placeholder="Contoh: Westlake, Nanofill, MLG (kosongkan = Umum)"
+              value={brand}
+              onChange={e => setBrand(e.target.value)}
+              list="brand-list"
+            />
+            {existingBrands.length > 0 && (
+              <datalist id="brand-list">
+                {existingBrands.map((b) => (
+                  <option key={b} value={b} />
+                ))}
+              </datalist>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label>Harga</Label>
+            <Input
+              placeholder="Contoh: Rp 5.000.000 atau Contact for pricing"
+              value={price}
+              onChange={e => setPrice(e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Deskripsi</Label>
+            <Input
+              placeholder="Deskripsi singkat produk"
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>URL Gambar</Label>
+            <Input
+              placeholder="https://... atau /path/gambar.jpg"
+              value={imageUrl}
+              onChange={e => setImageUrl(e.target.value)}
+              required
+            />
+          </div>
           {error && (
             <div className="text-red-500 text-sm">{error}</div>
           )}
