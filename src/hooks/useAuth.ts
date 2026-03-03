@@ -1,148 +1,141 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { supabase, type SupabaseUser } from "@/lib/supabase";
 
-export function useAuth() {
+type SignInResult = {
+  user: SupabaseUser | null;
+  error: string | null;
+};
+
+type SignOutResult = {
+  error: string | null;
+};
+
+type UseAuthReturn = {
+  user: SupabaseUser | null;
+  loading: boolean;
+  error: string | null;
+  signIn: (email: string, password: string) => Promise<SignInResult>;
+  signOut: () => Promise<SignOutResult>;
+};
+
+const useAuth = (): UseAuthReturn => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [role, setRole] = useState<string>("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  const fetchRole = useCallback(async (uid: string) => {
-    const { data, error } = await supabase
-      .from("users")
-      .select("role")
-      .eq("id", uid)
-      .maybeSingle();
-
-    if (error || !data) {
-      setRole("");
-      return;
-    }
-
-    setRole((data.role ?? "").toLowerCase());
-  }, []);
 
   useEffect(() => {
     let isMounted = true;
 
-    async function init() {
-      setLoading(true);
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
+    const initAuth = async () => {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (!isMounted) return;
 
-      if (!isMounted) return;
+        if (error) {
+          const msg = error.message?.toLowerCase() ?? "";
 
-      if (error) {
+          // Kasus umum Supabase v2 ketika belum ada sesi sama sekali.
+          // Ini bukan error bagi user, cukup anggap belum login.
+          if (msg.includes("auth session missing")) {
+            setUser(null);
+            return;
+          }
+
+          setError(error.message);
+          setUser(null);
+        } else {
+          setUser(data.user ?? null);
+        }
+      } catch (err) {
+        if (!isMounted) return;
+        const message =
+          err instanceof Error ? err.message : "Terjadi kesalahan saat memuat user.";
+        setError(message);
         setUser(null);
-        setRole("");
-        setLoading(false);
-        return;
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
+    };
 
-      setUser(user);
-      setLoading(false);
-
-      if (user) {
-        await fetchRole(user.id);
-      }
-    }
+    void initAuth();
 
     const {
-      data: authListener,
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      if (currentUser) {
-        await fetchRole(currentUser.id);
-      } else {
-        setRole("");
-      }
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return;
+      setUser(session?.user ?? null);
     });
-
-    void init();
 
     return () => {
       isMounted = false;
-      authListener.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
-  }, [fetchRole]);
+  }, []);
 
-  const signIn = useCallback(async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<SignInResult> => {
+    setLoading(true);
     setError(null);
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error || !data.user) {
-        throw error || new Error("Login gagal.");
+      if (error) {
+        const message = error.message ?? "Login gagal. Periksa kembali email dan password.";
+        setError(message);
+        return { user: null, error: message };
       }
 
-      setUser(data.user);
-      await fetchRole(data.user.id);
-      return { user: data.user, error: null } as const;
-    } catch (err: any) {
-      setError(err.message || 'Login gagal.');
-      setUser(null);
-      setRole("");
-      return { user: null, error: err } as const;
+      const authenticatedUser = data.user ?? null;
+      setUser(authenticatedUser);
+      return { user: authenticatedUser, error: null };
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Terjadi kesalahan tak terduga saat login.";
+      setError(message);
+      return { user: null, error: message };
+    } finally {
+      setLoading(false);
     }
-  }, [fetchRole]);
+  };
 
-  const signUp = useCallback(async (email: string, password: string, role_: string = "owner") => {
+  const signOut = async (): Promise<SignOutResult> => {
+    setLoading(true);
     setError(null);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
 
-      if (error || !data.user) {
-        throw error || new Error("Sign up gagal.");
-      }
-
-      await supabase.from("users").insert({
-        id: data.user.id,
-        email: data.user.email,
-        role: role_,
-        created_at: new Date().toISOString(),
-      });
-
-      setUser(data.user);
-      setRole(role_);
-      return { user: data.user, error: null } as const;
-    } catch (err: any) {
-      setError(err.message || 'Sign up gagal.');
-      return { user: null, error: err } as const;
-    }
-  }, []);
-
-  const doSignOut = useCallback(async () => {
-    setError(null);
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+
+      if (error) {
+        const message = error.message ?? "Logout gagal. Coba lagi.";
+        setError(message);
+        return { error: message };
+      }
+
       setUser(null);
-      setRole("");
       return { error: null };
-    } catch (err: any) {
-      setError(err.message);
-      return { error: err };
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Terjadi kesalahan tak terduga saat logout.";
+      setError(message);
+      return { error: message };
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  };
 
   return {
     user,
-    role,
     loading,
     error,
     signIn,
-    signUp,
-    signOut: doSignOut
-  } as const;
-}
+    signOut,
+  };
+};
 
 export default useAuth;
+
