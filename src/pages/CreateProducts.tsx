@@ -1,10 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/lib/supabase";
 
 interface CreateProductsProps {
   open: boolean;
@@ -16,53 +23,83 @@ const CreateProducts = ({ open, onClose, existingBrands: existingBrandsProp = []
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [brand, setBrand] = useState('');
+  const [stock, setStock] = useState<number | ''>('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [brandId, setBrandId] = useState<string>('');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fetchedBrands, setFetchedBrands] = useState<string[]>([]);
+  const [fetchedBrands, setFetchedBrands] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     if (!open) return;
-    getDocs(collection(db, 'products'))
-      .then((snap) => {
-        const brands = new Set<string>();
-        snap.docs.forEach((d) => {
-          const b = (d.data() as { brand?: string }).brand;
-          if (b && b.trim()) brands.add(b.trim());
-        });
-        setFetchedBrands(Array.from(brands).sort());
-      })
-      .catch(() => setFetchedBrands([]));
+    (async () => {
+      const { data, error } = await supabase.from("brands").select("id, name");
+      if (error || !data) {
+        setFetchedBrands([]);
+        return;
+      }
+      const mapped = (data as any[]).map((row) => ({
+        id: String(row.id),
+        name: (row.name as string) ?? "",
+      }));
+      setFetchedBrands(mapped);
+    })().catch(() => setFetchedBrands([]));
   }, [open]);
 
-  const existingBrands = existingBrandsProp.length > 0 ? existingBrandsProp : fetchedBrands;
+  const existingBrands =
+    existingBrandsProp.length > 0
+      ? existingBrandsProp.map((name, idx) => ({ id: String(idx), name }))
+      : fetchedBrands;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!name || !description || !price || !imageUrl) {
-      setError('Nama, deskripsi, harga, dan gambar wajib diisi!');
+    if (!name || !description || !price || stock === '' || !imageFile || !brandId) {
+      setError('Nama, deskripsi, harga, stok, brand, dan file gambar wajib diisi!');
       return;
     }
-    const brandName = brand.trim() || 'Umum';
+    const selectedBrand = existingBrands.find((b) => b.id === brandId);
+    const brandName = selectedBrand?.name ?? "";
     setUploading(true);
     try {
-      await addDoc(collection(db, 'products'), {
+      // Upload image ke Supabase Storage
+      const bucket = "product-images";
+      const ext = imageFile.name.split(".").pop() ?? "jpg";
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const filePath = `${brandName || "Umum"}/${fileName}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, imageFile, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (uploadError || !uploadData?.path) {
+        throw uploadError ?? new Error("Gagal mengunggah gambar.");
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from(bucket).getPublicUrl(uploadData.path);
+
+      const { error } = await supabase.from("products").insert({
         name: name.trim(),
         description: description.trim(),
-        price: price.trim(),
-        image: imageUrl.trim(),
-        brand: brandName,
-        createdAt: new Date().toISOString()
+        price: Number(price),
+        stock: Number(stock),
+        image: publicUrl,
+        brand_id: Number(brandId),
       });
+      if (error) throw error;
       // alert('Produk berhasil ditambahkan!');
       if (onClose) onClose();
       setName('');
       setDescription('');
       setPrice('');
-      setImageUrl('');
-      setBrand('');
+      setStock('');
+      setImageFile(null);
+      setBrandId('');
     } catch (err: any) {
       setError(err.message || 'Gagal tambah produk.');
     } finally {
@@ -89,19 +126,19 @@ const CreateProducts = ({ open, onClose, existingBrands: existingBrandsProp = []
           </div>
           <div className="space-y-2">
             <Label>Brand</Label>
-            <Input
-              placeholder="Contoh: Westlake, Nanofill, MLG (kosongkan = Umum)"
-              value={brand}
-              onChange={e => setBrand(e.target.value)}
-              list="brand-list"
-            />
-            {existingBrands.length > 0 && (
-              <datalist id="brand-list">
-                {existingBrands.map((b) => (
-                  <option key={b} value={b} />
-                ))}
-              </datalist>
-            )}
+            <select
+              className="border rounded px-3 py-2 w-full"
+              value={brandId}
+              onChange={e => setBrandId(e.target.value)}
+              required
+            >
+              <option value="">Pilih brand</option>
+              {existingBrands.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="space-y-2">
             <Label>Harga</Label>
@@ -109,6 +146,20 @@ const CreateProducts = ({ open, onClose, existingBrands: existingBrandsProp = []
               placeholder="Contoh: Rp 5.000.000 atau Contact for pricing"
               value={price}
               onChange={e => setPrice(e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Stok</Label>
+            <Input
+              type="number"
+              min={0}
+              placeholder="Contoh: 10"
+              value={stock}
+              onChange={e => {
+                const v = e.target.value;
+                setStock(v === '' ? '' : Number(v));
+              }}
               required
             />
           </div>
@@ -122,11 +173,14 @@ const CreateProducts = ({ open, onClose, existingBrands: existingBrandsProp = []
             />
           </div>
           <div className="space-y-2">
-            <Label>URL Gambar</Label>
+            <Label>Gambar Produk</Label>
             <Input
-              placeholder="https://... atau /path/gambar.jpg"
-              value={imageUrl}
-              onChange={e => setImageUrl(e.target.value)}
+              type="file"
+              accept="image/*"
+              onChange={e => {
+                const file = e.target.files?.[0] ?? null;
+                setImageFile(file);
+              }}
               required
             />
           </div>

@@ -1,46 +1,89 @@
-import { useEffect, useState, useCallback } from 'react';
-import { auth, db } from '@/lib/firebase';
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { useEffect, useState, useCallback } from "react";
+import { supabase, type SupabaseUser } from "@/lib/supabase";
 
 export function useAuth() {
-  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [role, setRole] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Listen for user state changes
+  const fetchRole = useCallback(async (uid: string) => {
+    const { data, error } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", uid)
+      .maybeSingle();
+
+    if (error || !data) {
+      setRole("");
+      return;
+    }
+
+    setRole((data.role ?? "").toLowerCase());
+  }, []);
+
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
+    let isMounted = true;
+
+    async function init() {
+      setLoading(true);
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (!isMounted) return;
+
+      if (error) {
+        setUser(null);
+        setRole("");
+        setLoading(false);
+        return;
+      }
+
+      setUser(user);
       setLoading(false);
-      if (firebaseUser) {
-        await fetchRole(firebaseUser.uid);
+
+      if (user) {
+        await fetchRole(user.id);
+      }
+    }
+
+    const {
+      data: authListener,
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        await fetchRole(currentUser.id);
       } else {
         setRole("");
       }
     });
-    return () => unsub();
-  }, []);
 
-  // Fetch user role from Firestore collection 'users'
-  const fetchRole = useCallback(async (uid: string) => {
-    const docRef = doc(db, 'users', uid);
-    const snap = await getDoc(docRef);
-    if (snap.exists()) {
-      setRole((snap.data().role ?? "").toLowerCase());
-    } else {
-      setRole("");
-    }
-  }, []);
+    void init();
+
+    return () => {
+      isMounted = false;
+      authListener.subscription.unsubscribe();
+    };
+  }, [fetchRole]);
 
   const signIn = useCallback(async (email: string, password: string) => {
     setError(null);
     try {
-      const res = await signInWithEmailAndPassword(auth, email, password);
-      setUser(res.user);
-      await fetchRole(res.user.uid);
-      return { user: res.user, error: null } as const;
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error || !data.user) {
+        throw error || new Error("Login gagal.");
+      }
+
+      setUser(data.user);
+      await fetchRole(data.user.id);
+      return { user: data.user, error: null } as const;
     } catch (err: any) {
       setError(err.message || 'Login gagal.');
       setUser(null);
@@ -52,16 +95,25 @@ export function useAuth() {
   const signUp = useCallback(async (email: string, password: string, role_: string = "owner") => {
     setError(null);
     try {
-      const { user } = await createUserWithEmailAndPassword(auth, email, password);
-      // Buat profile user di firestore (collection users), default role: owner (bisa diganti oleh admin nanti)
-      await setDoc(doc(db, 'users', user.uid), {
-        email: user.email,
-        role: role_,
-        created_at: new Date().toISOString()
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
       });
-      setUser(user);
+
+      if (error || !data.user) {
+        throw error || new Error("Sign up gagal.");
+      }
+
+      await supabase.from("users").insert({
+        id: data.user.id,
+        email: data.user.email,
+        role: role_,
+        created_at: new Date().toISOString(),
+      });
+
+      setUser(data.user);
       setRole(role_);
-      return { user, error: null } as const;
+      return { user: data.user, error: null } as const;
     } catch (err: any) {
       setError(err.message || 'Sign up gagal.');
       return { user: null, error: err } as const;
@@ -71,7 +123,8 @@ export function useAuth() {
   const doSignOut = useCallback(async () => {
     setError(null);
     try {
-      await signOut(auth);
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
       setUser(null);
       setRole("");
       return { error: null };

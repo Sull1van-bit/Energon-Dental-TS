@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { auth, db } from '@/lib/firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, getDocs, collection, updateDoc } from 'firebase/firestore';
+import { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase";
 
 interface UserProfile {
   id: string;
@@ -22,22 +20,26 @@ const UserDashboard = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
 
-  // Fetch semua user dari Firestore
   async function fetchUsers() {
     setLoading(true);
     setError(null);
     try {
-      const snap = await getDocs(collection(db, 'users'));
-      const users: UserProfile[] = snap.docs.map(docu => {
-        const data = docu.data();
-        return {
-          id: docu.id,
-          email: data.email,
-          role: data.role,
-          created_at: data.created_at || '-',
-        }
-      });
-      setUsers(users);
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, email, role, created_at")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const mapped: UserProfile[] =
+        data?.map((u) => ({
+          id: u.id as string,
+          email: (u.email as string) ?? "",
+          role: (u.role as string) ?? "",
+          created_at: (u.created_at as string) ?? "-",
+        })) ?? [];
+
+      setUsers(mapped);
     } catch (err: any) {
       setError(err.message || 'Gagal memuat data user');
     }
@@ -48,21 +50,27 @@ const UserDashboard = () => {
     fetchUsers();
   }, []);
 
-  // Tambah user baru (register Auth + set doc Firestore)
   async function handleAddUser(e: React.FormEvent) {
     e.preventDefault();
     setProcessing(true);
     setError(null); setSuccess(null);
     if (!email || !password) { setError('Lengkapi email & password!'); setProcessing(false); return; }
     try {
-      // Create auth account
-      const userCred = await createUserWithEmailAndPassword(auth, email, password);
-      const profile = {
-        email: userCred.user.email,
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error || !data.user) {
+        throw error || new Error("Gagal tambah user");
+      }
+
+      await supabase.from("users").insert({
+        id: data.user.id,
+        email: data.user.email,
         role,
         created_at: new Date().toISOString(),
-      };
-      await setDoc(doc(db, 'users', userCred.user.uid), profile);
+      });
       setSuccess('Berhasil menambah user!');
       setEmail(''); setPassword(''); setRole('Owner');
       fetchUsers();
@@ -72,11 +80,15 @@ const UserDashboard = () => {
     setProcessing(false);
   }
 
-  // Edit role user di firestore
   async function handleRoleChange(id: string, newRole: string) {
     setProcessing(true); setError(null); setSuccess(null);
     try {
-      await updateDoc(doc(db, 'users', id), { role: newRole });
+      const { error } = await supabase
+        .from("users")
+        .update({ role: newRole })
+        .eq("id", id);
+
+      if (error) throw error;
       setSuccess('Role berhasil di-update!');
       fetchUsers();
     } catch (err: any) {

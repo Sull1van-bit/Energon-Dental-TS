@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { supabase } from "@/lib/supabase";
 import productsJson from "@/data/products.json";
 
 export interface ProductItem {
@@ -9,6 +8,7 @@ export interface ProductItem {
   description: string;
   price: string;
   image: string;
+  stock?: number;
 }
 
 export type ProductsData = {
@@ -33,28 +33,60 @@ export function useProducts(): {
 
     async function load() {
       try {
-        const [productsSnap, configSnap] = await Promise.all([
-          getDocs(collection(db, "products")),
-          getDoc(doc(db, CONFIG_PATH, CONFIG_ID)),
+        const [
+          { data: productsData, error: productsError },
+          { data: configData, error: configError },
+        ] = await Promise.all([
+          supabase
+            .from("products")
+            .select(
+              `
+              *,
+              brands ( name )
+            `
+            ),
+          supabase
+            .from(CONFIG_PATH)
+            .select("id, brandLogos")
+            .eq("id", CONFIG_ID)
+            .maybeSingle(),
         ]);
 
         if (cancelled) return;
 
-        const brandLogos: Record<string, string> =
-          (configSnap.data()?.brandLogos as Record<string, string>) ?? {};
+        if (productsError) throw productsError;
+        if (configError) {
+          // config boleh tidak ada; pakai default kosong
+          // eslint-disable-next-line no-console
+          console.warn("[useProducts] Gagal memuat config brandLogos:", configError.message);
+        }
 
-        const rawProducts = productsSnap.docs.map((d) => {
-          const x = d.data();
-          const brand = (x.brand as string)?.trim() || "Umum";
-          return {
-            id: d.id,
-            name: (x.name as string) ?? "",
-            description: (x.description as string) ?? "",
-            price: (x.price as string) ?? "Contact for pricing",
-            image: (x.image as string) ?? "/placeholder.svg",
-            brand,
-          };
-        });
+        const brandLogos: Record<string, string> =
+          ((configData?.brandLogos as Record<string, string> | undefined) ?? {}) as Record<
+            string,
+            string
+          >;
+
+        const rawProducts =
+          productsData?.map((x: any) => {
+            const brand =
+              ((x.brands?.name as string | undefined) ??
+                (x.brand as string | undefined) ??
+                "Umum")
+                .trim() || "Umum";
+            return {
+              id: x.id ?? "",
+              name: (x.name as string) ?? "",
+              description: (x.description as string) ?? "",
+              price:
+                typeof x.price === "number"
+                  ? String(x.price)
+                  : ((x.price as string) ?? "Contact for pricing"),
+              image: (x.image as string) ?? "/placeholder.svg",
+              stock: typeof x.stock === "number" ? x.stock : undefined,
+              brand,
+            };
+          }) ?? [];
 
         if (rawProducts.length === 0) {
           setData(productsJson as ProductsData);

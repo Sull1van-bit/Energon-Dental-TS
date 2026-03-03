@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react';
-import { db } from '@/lib/firebase';
-import { collection, onSnapshot, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export interface Product {
   id: string;
   name: string;
   description?: string;
-  price?: string;
+  stock?: number;
+  price?: number;
   image?: string;
   brand?: string;
   createdAt?: string;
@@ -21,15 +21,48 @@ const Products = () => {
   const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
-    const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snap) => {
-      const data = snap.docs.map(
-        doc => ({ id: doc.id, ...(doc.data() as Omit<Product,'id'>) })
-      );
-      setProducts(data);
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("products")
+        .select(
+          `
+          *,
+          brands ( name )
+        `
+        )
+        .order("created_at", { ascending: false });
+
+      if (cancelled) return;
+
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.error("Gagal memuat produk:", error.message);
+        setProducts([]);
+      } else {
+        const mapped: Product[] =
+          data?.map((p: any) => ({
+            id: String(p.id),
+            name: (p.name as string) ?? "",
+            description: p.description ?? undefined,
+            stock: typeof p.stock === "number" ? p.stock : undefined,
+            price: typeof p.price === "number" ? p.price : Number(p.price) || undefined,
+            image: p.image ?? undefined,
+            brand: (p.brands?.name as string) ?? undefined,
+            createdAt: p.created_at ?? undefined,
+          })) ?? [];
+        setProducts(mapped);
+      }
       setLoading(false);
-    });
-    return () => unsubscribe();
+    }
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const openImageModal = (img: string) => {
@@ -46,7 +79,9 @@ const Products = () => {
     if (!confirm) return;
     setDeleting(id);
     try {
-      await deleteDoc(doc(db, 'products', id));
+      const { error } = await supabase.from("products").delete().eq("id", id);
+      if (error) throw error;
+      setProducts((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
       alert('Gagal hapus produk: ' + (err as any)?.message || 'Unknown error');
     } finally {
@@ -72,23 +107,51 @@ const Products = () => {
       <table className="min-w-full bg-white border border-gray-200">
         <thead className="bg-[#000099] text-white">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">No</th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">Brand</th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">Nama Produk</th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">Deskripsi</th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">Harga</th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">Foto</th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">Aksi</th>
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">
+              No
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">
+              Brand
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">
+              Nama Produk
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">
+              Deskripsi
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">
+              Stok
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">
+              Harga
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">
+              Foto
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">
+              Aksi
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
           {products.map((product, index) => (
             <tr key={product.id} className="hover:bg-gray-50 transition-colors duration-200">
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#000099]">{index + 1}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">{product.brand || 'Umum'}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{product.name}</td>
-              <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">{product.description || '-'}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-[#ff6600]">{product.price || 'Contact for pricing'}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
+                {product.brand || "Umum"}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                {product.name}
+              </td>
+              <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
+                {product.description || "-"}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                {typeof product.stock === "number" ? product.stock : "-"}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-[#ff6600]">
+                {typeof product.price === "number" ? product.price : "Contact for pricing"}
+              </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                 {product.image ? (
                   <button onClick={() => openImageModal(product.image!)} className="p-0 border-none bg-transparent focus:outline-none">

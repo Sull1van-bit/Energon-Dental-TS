@@ -98,9 +98,17 @@ const Products = () => {
                         className="w-full h-48 object-contain object-center rounded-t-lg"
                       />
                       <div className="p-6">
-                        <h3 className="text-xl font-semibold mb-2 text-foreground">{product.name}</h3>
-                        <p className="text-muted-foreground text-sm line-clamp-2">{product.description}</p>
-                        <p className="text-primary font-semibold mt-4">{product.price}</p>
+                        <h3 className="text-xl font-semibold mb-2 text-foreground">
+                          {product.name}
+                        </h3>
+                        <p className="text-muted-foreground text-sm line-clamp-2">
+                          {product.description}
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Stok:{" "}
+                          {typeof product.stock === "number" ? product.stock : "Hubungi admin"}
+                        </p>
+                        <p className="text-primary font-semibold mt-2">{product.price}</p>
                       </div>
                     </CardContent>
                   </Card>
