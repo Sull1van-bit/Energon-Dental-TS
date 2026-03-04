@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 
 export default function ManageBrandLogos() {
   const [brands, setBrands] = useState<{ id: number | string; name: string }[]>([]);
-  const [brandCounts, setBrandCounts] = useState<Record<string, number>>({});
+  const [brandCounts, setBrandCounts] = useState<Record<string | number, number>>({});
   const [loading, setLoading] = useState(true);
   const [deletingBrand, setDeletingBrand] = useState<string | null>(null);
   const [newBrand, setNewBrand] = useState("");
@@ -13,25 +13,25 @@ export default function ManageBrandLogos() {
   const loadData = () => {
     Promise.all([
       supabase.from("brands").select("id, name"),
-      supabase.from("products").select("brand"),
+      // Hitung jumlah produk per brand berdasarkan kolom relasi brand_id
+      supabase.from("products").select("id, brand_id"),
     ])
       .then(([brandsRes, productsRes]) => {
         const { data: brandsData } = brandsRes;
         const { data: productsData } = productsRes;
 
-        setBrands(
+        const mappedBrands =
           (brandsData ?? []).map((b: any) => ({
             id: b.id,
             name: (b.name as string) ?? "",
-          }))
-        );
+          })) ?? [];
+        setBrands(mappedBrands);
 
-        const counts: Record<string, number> = {};
+        const counts: Record<string | number, number> = {};
         (productsData ?? []).forEach((row: any) => {
-          const brandName = (row.brand as string | undefined)?.trim();
-          if (brandName) {
-            counts[brandName] = (counts[brandName] ?? 0) + 1;
-          }
+          const brandId = row.brand_id as number | string | null | undefined;
+          if (brandId == null) return;
+          counts[brandId] = (counts[brandId] ?? 0) + 1;
         });
         setBrandCounts(counts);
       })
@@ -142,7 +142,7 @@ export default function ManageBrandLogos() {
                   <td className="px-4 py-3 text-sm text-gray-600">{index + 1}</td>
                   <td className="px-4 py-3 text-sm font-medium text-gray-900">{brand.name}</td>
                   <td className="px-4 py-3 text-sm text-gray-600">
-                    {brandCounts[brand.name] ?? 0}
+                    {brandCounts[brand.id] ?? 0}
                   </td>
                   <td className="px-4 py-3">
                     <Button

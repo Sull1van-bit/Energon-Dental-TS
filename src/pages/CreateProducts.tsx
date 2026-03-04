@@ -59,7 +59,7 @@ const CreateProducts = ({ open, onClose, existingBrands: existingBrandsProp = []
       return;
     }
     const selectedBrand = existingBrands.find((b) => b.id === brandId);
-    const brandName = selectedBrand?.name ?? "";
+    const brandName = selectedBrand?.name?.trim() ?? "";
     setUploading(true);
     try {
       // Upload image ke Supabase Storage
@@ -89,7 +89,9 @@ const CreateProducts = ({ open, onClose, existingBrands: existingBrandsProp = []
         price: Number(price),
         stock: Number(stock),
         image: publicUrl,
-        brand_id: Number(brandId),
+        // Simpan relasi ke tabel brands lewat ID
+        brand_id: brandId,        // Simpan juga nama brand agar fitur lain yang masih pakai kolom "brand" tetap jalan
+  
       });
       if (error) throw error;
       // alert('Produk berhasil ditambahkan!');
