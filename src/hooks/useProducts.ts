@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import productsJson from "@/data/products.json";
 
 export interface ProductItem {
-  id: string | number;
+  id: number;
   name: string;
   description: string;
   price: string;
@@ -39,18 +38,26 @@ export function useProducts(): {
         ] = await Promise.all([
           supabase
             .from("products")
-            .select(
-              `
-              *,
-              brands ( name )
-            `
-            ),
+            .select(`
+              id,
+              name,
+              description,
+              price,
+              image,
+              stock,
+              brands (
+                name
+              )
+            `),
           supabase
             .from(CONFIG_PATH)
             .select("id, brandLogos")
             .eq("id", CONFIG_ID)
             .maybeSingle(),
         ]);
+
+console.log("productsData:", productsData); // tambah ini
+console.log("productsError:", productsError); // tambah ini
 
         if (cancelled) return;
 
@@ -88,12 +95,6 @@ export function useProducts(): {
             };
           }) ?? [];
 
-        if (rawProducts.length === 0) {
-          setData(productsJson as ProductsData);
-          setLoading(false);
-          return;
-        }
-
         const byBrand: Record<string, ProductItem[]> = {};
         rawProducts.forEach((p) => {
           const { brand, ...item } = p;
@@ -108,7 +109,7 @@ export function useProducts(): {
       } catch (e) {
         if (!cancelled) {
           setError(e instanceof Error ? e : new Error(String(e)));
-          setData(productsJson as ProductsData);
+          setData(null);
         }
       } finally {
         if (!cancelled) setLoading(false);

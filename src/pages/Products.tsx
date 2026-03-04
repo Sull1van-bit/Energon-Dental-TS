@@ -71,18 +71,10 @@ const Products = () => {
           const visibleProducts = hasMore && !isExpanded
             ? products.slice(0, INITIAL_VISIBLE)
             : products;
-          const brandLogo = (productsData as ProductsData).brandLogos?.[brand] ?? "/placeholder.svg";
 
           return (
             <div key={brand} className="mb-16" style={{ animationDelay: `${brandIndex * 0.1}s` }}>
-              <div className="flex items-center gap-4 mb-8">
-                <img
-                  src={brandLogo}
-                  alt={`${brand} logo`}
-                  className="h-14 w-auto max-w-[180px] object-contain object-left"
-                />
-                <h2 className="text-3xl font-bold text-foreground">{brand}</h2>
-              </div>
+              <h2 className="text-3xl font-bold text-foreground mb-8">{brand}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {visibleProducts.map((product, index) => (
                   <Card
@@ -108,7 +100,9 @@ const Products = () => {
                           Stok:{" "}
                           {typeof product.stock === "number" ? product.stock : "Hubungi admin"}
                         </p>
-                        <p className="text-primary font-semibold mt-2">{product.price}</p>
+                        <p className="text-primary font-semibold mt-2">
+                    {Number(product.price).toLocaleString("id-ID", { style: "currency", currency: "IDR" })}
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
@@ -155,9 +149,15 @@ const Products = () => {
                 alt={selectedProduct.name}
                 className="w-full h-64 object-contain object-center rounded-lg my-4"
               />
-              <DialogDescription className="text-base">
+              <DialogDescription className="text-base mb-2">
                 {selectedProduct.description}
               </DialogDescription>
+              <p className="text-lg font-semibold text-primary mb-4">
+                {Number(selectedProduct.price).toLocaleString("id-ID", {
+                  style: "currency",
+                  currency: "IDR",
+                })}
+              </p>
               <div className="flex flex-col sm:flex-row gap-4 mt-6">
                 <Button
                   onClick={handleWhatsAppOrder}
