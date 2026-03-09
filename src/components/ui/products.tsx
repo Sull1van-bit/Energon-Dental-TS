@@ -18,7 +18,11 @@ export interface Product {
 
 const INITIAL_VISIBLE = 4;
 
-const Products = () => {
+interface ProductsProps {
+  reloadKey?: number;
+}
+
+const Products = ({ reloadKey }: ProductsProps) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -79,7 +83,7 @@ const Products = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
 
   const openImageModal = (img: string) => {
     setModalImage(img);

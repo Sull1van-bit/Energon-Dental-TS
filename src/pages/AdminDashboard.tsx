@@ -10,6 +10,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [selectedMenu, setSelectedMenu] = useState<'products' | 'users'>('products');
   const [openCreateProductModal, setOpenCreateProductModal] = useState(false);
+  const [productsReloadKey, setProductsReloadKey] = useState(0);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -50,7 +51,11 @@ const AdminDashboard = () => {
             <ul>
               <li>
                 <button
-                  className={`w-full text-left py-3 px-6 flex items-center transition bg-transparent hover:bg-orange-300 font-medium ${selectedMenu === 'products' ? 'bg-[#ff6600] text-white' : 'bg-[#ff6600] text-gray-600'}`}
+                  className={`w-full text-left py-3 px-6 flex items-center transition font-medium ${
+                    selectedMenu === 'products'
+                      ? 'bg-[#ff6600] text-white'
+                      : 'bg-white text-gray-700 hover:bg-orange-100'
+                  }`}
                   onClick={() => setSelectedMenu('products')}
                 >
                   Products
@@ -58,7 +63,11 @@ const AdminDashboard = () => {
               </li>
               <li>
                 <button
-                  className={`w-full text-left py-3 px-6 flex items-center transition bg-transparent hover:bg-orange-300 font-medium ${selectedMenu === 'users' ? 'bg-[#ff6600] text-white' : 'text-gray-600'}`}
+                  className={`w-full text-left py-3 px-6 flex items-center transition font-medium ${
+                    selectedMenu === 'users'
+                      ? 'bg-[#ff6600] text-white'
+                      : 'bg-white text-gray-700 hover:bg-orange-100'
+                  }`}
                   onClick={() => setSelectedMenu('users')}
                 >
                   Users
@@ -86,11 +95,17 @@ const AdminDashboard = () => {
               <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={() => setOpenCreateProductModal(true)}>
                 Add New Product
               </button>
-              <CreateProducts open={openCreateProductModal} onClose={() => setOpenCreateProductModal(false)} />
-
+              <CreateProducts
+                open={openCreateProductModal}
+                onClose={() => setOpenCreateProductModal(false)}
+                onCreated={() => {
+                  setOpenCreateProductModal(false);
+                  setProductsReloadKey((prev) => prev + 1);
+                }}
+              />
             </div>
             <div className="bg-white shadow rounded-lg p-6">
-              <Products />
+              <Products reloadKey={productsReloadKey} />
               <ManageBrandLogos />
             </div>
           </section>

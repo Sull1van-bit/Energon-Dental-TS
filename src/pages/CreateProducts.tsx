@@ -17,9 +17,10 @@ interface CreateProductsProps {
   open: boolean;
   onClose?: () => void;
   existingBrands?: string[];
+  onCreated?: () => void;
 }
 
-const CreateProducts = ({ open, onClose, existingBrands: existingBrandsProp = [] }: CreateProductsProps) => {
+const CreateProducts = ({ open, onClose, existingBrands: existingBrandsProp = [], onCreated }: CreateProductsProps) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -97,7 +98,11 @@ const CreateProducts = ({ open, onClose, existingBrands: existingBrandsProp = []
       });
       if (error) throw error;
       // alert('Produk berhasil ditambahkan!');
-      if (onClose) onClose();
+      if (onCreated) {
+        onCreated();
+      } else if (onClose) {
+        onClose();
+      }
       setName('');
       setDescription('');
       setPrice('');
