@@ -26,6 +26,7 @@ const CreateProducts = ({ open, onClose, existingBrands: existingBrandsProp = []
   const [stock, setStock] = useState<number | ''>('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [brandId, setBrandId] = useState<string>('');
+  const [kategori, setKategori] = useState('');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fetchedBrands, setFetchedBrands] = useState<{ id: string; name: string }[]>([]);
@@ -54,8 +55,8 @@ const CreateProducts = ({ open, onClose, existingBrands: existingBrandsProp = []
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!name || !description || !price || stock === '' || !imageFile || !brandId) {
-      setError('Nama, deskripsi, harga, stok, brand, dan file gambar wajib diisi!');
+    if (!name || !description || !price || stock === '' || !imageFile || !brandId || !kategori) {
+      setError('Nama, deskripsi, harga, stok, brand, kategori, dan file gambar wajib diisi!');
       return;
     }
     const selectedBrand = existingBrands.find((b) => b.id === brandId);
@@ -89,6 +90,7 @@ const CreateProducts = ({ open, onClose, existingBrands: existingBrandsProp = []
         price: Number(price),
         stock: Number(stock),
         image: publicUrl,
+        kategori: kategori.trim(),
         // Simpan relasi ke tabel brands lewat ID
         brand_id: brandId,        // Simpan juga nama brand agar fitur lain yang masih pakai kolom "brand" tetap jalan
   
@@ -102,6 +104,7 @@ const CreateProducts = ({ open, onClose, existingBrands: existingBrandsProp = []
       setStock('');
       setImageFile(null);
       setBrandId('');
+      setKategori('');
     } catch (err: any) {
       setError(err.message || 'Gagal tambah produk.');
     } finally {
@@ -123,6 +126,15 @@ const CreateProducts = ({ open, onClose, existingBrands: existingBrandsProp = []
               placeholder="Contoh: Digital X-Ray System"
               value={name}
               onChange={e => setName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Kategori</Label>
+            <Input
+              placeholder="Contoh: Alat Bedah, Alat Sterilisasi"
+              value={kategori}
+              onChange={e => setKategori(e.target.value)}
               required
             />
           </div>
