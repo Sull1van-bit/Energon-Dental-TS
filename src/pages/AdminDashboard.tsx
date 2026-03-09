@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "@/hooks/useAuth";
 import Products from "@/components/ui/products";
-import CreateProducts from "./CreateProducts";
-import ManageBrandLogos from "@/components/admin/ManageBrandLogos";
+import CreateProducts from "./CreateProductsNew";
+import ManageBrands from "@/components/admin/ManageBrands";
+import ManageCategories from "@/components/admin/ManageCategories";
 
 const AdminDashboard = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
-  const [selectedMenu, setSelectedMenu] = useState<'products' | 'users'>('products');
+  const [selectedMenu, setSelectedMenu] = useState<'products' | 'brands' | 'categories' | 'users'>('products');
   const [openCreateProductModal, setOpenCreateProductModal] = useState(false);
   const [productsReloadKey, setProductsReloadKey] = useState(0);
 
@@ -64,6 +65,30 @@ const AdminDashboard = () => {
               <li>
                 <button
                   className={`w-full text-left py-3 px-6 flex items-center transition font-medium ${
+                    selectedMenu === 'brands'
+                      ? 'bg-[#ff6600] text-white'
+                      : 'bg-white text-gray-700 hover:bg-orange-100'
+                  }`}
+                  onClick={() => setSelectedMenu('brands')}
+                >
+                  Brands
+                </button>
+              </li>
+              <li>
+                <button
+                  className={`w-full text-left py-3 px-6 flex items-center transition font-medium ${
+                    selectedMenu === 'categories'
+                      ? 'bg-[#ff6600] text-white'
+                      : 'bg-white text-gray-700 hover:bg-orange-100'
+                  }`}
+                  onClick={() => setSelectedMenu('categories')}
+                >
+                  Categories
+                </button>
+              </li>
+              <li>
+                <button
+                  className={`w-full text-left py-3 px-6 flex items-center transition font-medium ${
                     selectedMenu === 'users'
                       ? 'bg-[#ff6600] text-white'
                       : 'bg-white text-gray-700 hover:bg-orange-100'
@@ -106,7 +131,20 @@ const AdminDashboard = () => {
             </div>
             <div className="bg-white shadow rounded-lg p-6">
               <Products reloadKey={productsReloadKey} />
-              <ManageBrandLogos />
+            </div>
+          </section>
+        )}
+        {selectedMenu === 'brands' && (
+          <section>
+            <div className="bg-white shadow rounded-lg p-6">
+              <ManageBrands />
+            </div>
+          </section>
+        )}
+        {selectedMenu === 'categories' && (
+          <section>
+            <div className="bg-white shadow rounded-lg p-6">
+              <ManageCategories />
             </div>
           </section>
         )}
@@ -121,7 +159,7 @@ const AdminDashboard = () => {
             </div>
           </section>
         )}
-      </main>
+      </main> 
     </div>
   );
 };

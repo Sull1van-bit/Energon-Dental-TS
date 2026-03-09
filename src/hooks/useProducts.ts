@@ -8,6 +8,8 @@ export interface ProductItem {
   price: string;
   image: string;
   stock?: number;
+  category?: string;
+  brand?: string;
 }
 
 export type ProductsData = {
@@ -47,6 +49,10 @@ export function useProducts(): {
               stock,
               brands (
                 name
+              ),
+              categories (
+                name,
+                slug
               )
             `),
           supabase
@@ -92,6 +98,7 @@ console.log("productsError:", productsError); // tambah ini
               image: (x.image as string) ?? "/placeholder.svg",
               stock: typeof x.stock === "number" ? x.stock : undefined,
               brand,
+              category: x.categories?.name || "Other",
             };
           }) ?? [];
 

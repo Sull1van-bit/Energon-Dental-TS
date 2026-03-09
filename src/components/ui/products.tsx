@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export interface Product {
   id: string;
@@ -13,7 +14,20 @@ export interface Product {
   image?: string;
   brand?: string;
   kategori?: string;
+  brand_id?: string;
+  category_id?: string;
   createdAt?: string;
+}
+
+interface Brand {
+  id: string;
+  name: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
 }
 
 const INITIAL_VISIBLE = 4;
@@ -37,7 +51,16 @@ const Products = ({ reloadKey }: ProductsProps) => {
   const [editStock, setEditStock] = useState<string>("");
   const [editPrice, setEditPrice] = useState<string>("");
   const [editKategori, setEditKategori] = useState("");
+  const [editBrand, setEditBrand] = useState("");
+  const [editBrandId, setEditBrandId] = useState<string>("");
+  const [editCategoryId, setEditCategoryId] = useState<string>("");
   const [savingEdit, setSavingEdit] = useState(false);
+  
+  // Data for dropdowns
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingBrands, setLoadingBrands] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,7 +72,8 @@ const Products = ({ reloadKey }: ProductsProps) => {
         .select(
           `
           *,
-          brands ( name )
+          brands ( id, name ),
+          categories ( id, name, slug )
         `
         )
         .order("created_at", { ascending: false });
@@ -70,7 +94,9 @@ const Products = ({ reloadKey }: ProductsProps) => {
             price: typeof p.price === "number" ? p.price : Number(p.price) || undefined,
             image: p.image ?? undefined,
             brand: (p.brands?.name as string) ?? undefined,
-            kategori: (p.kategori as string) ?? undefined,
+            brand_id: p.brand_id ?? undefined,
+            kategori: (p.categories?.name as string) ?? (p.kategori as string) ?? undefined,
+            category_id: p.category_id ?? undefined,
             createdAt: p.created_at ?? undefined,
           })) ?? [];
         setProducts(mapped);
@@ -84,6 +110,42 @@ const Products = ({ reloadKey }: ProductsProps) => {
       cancelled = true;
     };
   }, [reloadKey]);
+
+  // Load brands for dropdown
+  const loadBrands = async () => {
+    setLoadingBrands(true);
+    try {
+      const { data, error } = await supabase
+        .from('brands')
+        .select('id, name')
+        .order('name');
+      
+      if (error) throw error;
+      setBrands(data || []);
+    } catch (error) {
+      console.error('Error loading brands:', error);
+    } finally {
+      setLoadingBrands(false);
+    }
+  };
+
+  // Load categories for dropdown
+  const loadCategories = async () => {
+    setLoadingCategories(true);
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name, slug')
+        .order('name');
+      
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
 
   const openImageModal = (img: string) => {
     setModalImage(img);
@@ -120,7 +182,14 @@ const Products = ({ reloadKey }: ProductsProps) => {
       typeof product.price === "number" ? String(product.price) : ""
     );
     setEditKategori(product.kategori ?? "");
+    setEditBrand(product.brand ?? "");
+    setEditBrandId(product.brand_id ?? "");
+    setEditCategoryId(product.category_id ?? "");
     setEditOpen(true);
+    
+    // Load dropdowns data if not already loaded
+    if (brands.length === 0) loadBrands();
+    if (categories.length === 0) loadCategories();
   };
 
   const handleUpdateProduct = async (e: React.FormEvent) => {
@@ -129,7 +198,6 @@ const Products = ({ reloadKey }: ProductsProps) => {
 
     const trimmedName = editName.trim();
     const trimmedDesc = editDescription.trim();
-    const trimmedKategori = editKategori.trim();
 
     if (!trimmedName) {
       alert("Nama produk tidak boleh kosong.");
@@ -159,12 +227,17 @@ const Products = ({ reloadKey }: ProductsProps) => {
           description: trimmedDesc || null,
           stock: stockValue,
           price: priceValue,
-          kategori: trimmedKategori || null,
+          brand_id: editBrandId || null,
+          category_id: editCategoryId || null,
         })
         .eq("id", editingProductId);
 
       if (error) throw error;
 
+      // Find the updated brand and category names
+      const selectedBrand = brands.find(b => b.id === editBrandId);
+      const selectedCategory = categories.find(c => c.id === editCategoryId);
+      
       setProducts((prev) =>
         prev.map((p) =>
           p.id === editingProductId
@@ -174,7 +247,10 @@ const Products = ({ reloadKey }: ProductsProps) => {
                 description: trimmedDesc || undefined,
                 stock: stockValue === null ? undefined : stockValue,
                 price: priceValue === null ? undefined : priceValue,
-                kategori: trimmedKategori || undefined,
+                kategori: selectedCategory?.name || undefined,
+                brand: selectedBrand?.name || undefined,
+                brand_id: editBrandId || undefined,
+                category_id: editCategoryId || undefined,
               }
             : p
         )
@@ -397,13 +473,39 @@ const Products = ({ reloadKey }: ProductsProps) => {
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">
+                Brand
+              </label>
+              <Select value={editBrandId || "none"} onValueChange={(value) => setEditBrandId(value === "none" ? "" : value)} disabled={loadingBrands}>
+                <SelectTrigger>
+                  <SelectValue placeholder={loadingBrands ? "Loading brands..." : "Select brand (optional)"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Brand (Umum)</SelectItem>
+                  {brands.map((brand) => (
+                    <SelectItem key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">
                 Kategori
               </label>
-              <Input
-                value={editKategori}
-                onChange={(e) => setEditKategori(e.target.value)}
-                placeholder="Contoh: Alat Bedah, Alat Sterilisasi"
-              />
+              <Select value={editCategoryId || "none"} onValueChange={(value) => setEditCategoryId(value === "none" ? "" : value)} disabled={loadingCategories}>
+                <SelectTrigger>
+                  <SelectValue placeholder={loadingCategories ? "Loading categories..." : "Select category (optional)"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Category</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">
