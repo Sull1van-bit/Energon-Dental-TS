@@ -28,7 +28,6 @@ const ManageCategories = () => {
 
   const loadCategories = async () => {
     try {
-      console.log('Loading categories...');
       const { data, error } = await supabase
         .from('categories')
         .select('id, name, slug, created_at')
@@ -39,7 +38,6 @@ const ManageCategories = () => {
         throw error;
       }
       
-      console.log('Categories loaded:', data);
       setCategories(data || []);
     } catch (error: any) {
       console.error('Error loading categories:', error);
@@ -54,7 +52,6 @@ const ManageCategories = () => {
     // Debug current user session
     const checkAuth = async () => {
       const { data: { user }, error } = await supabase.auth.getUser();
-      console.log('Current user:', user);
       if (error) console.error('Auth error:', error);
     };
     
@@ -72,10 +69,7 @@ const ManageCategories = () => {
         name: name.trim(),
       };
 
-      console.log('Attempting to save category:', categoryData);
-
       if (editingCategory) {
-        console.log('Updating category with ID:', editingCategory.id);
         const { data, error } = await supabase
           .from('categories')
           .update(categoryData)
@@ -86,9 +80,7 @@ const ManageCategories = () => {
           console.error('Update error:', error);
           throw error;
         }
-        console.log('Update successful:', data);
       } else {
-        console.log('Inserting new category');
         const { data, error } = await supabase
           .from('categories')
           .insert([categoryData])
@@ -98,7 +90,6 @@ const ManageCategories = () => {
           console.error('Insert error:', error);
           throw error;
         }
-        console.log('Insert successful:', data);
       }
 
       await loadCategories();

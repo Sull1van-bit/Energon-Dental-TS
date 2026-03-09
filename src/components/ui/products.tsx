@@ -62,6 +62,16 @@ const Products = ({ reloadKey }: ProductsProps) => {
   const [loadingBrands, setLoadingBrands] = useState(false);
   const [loadingCategories, setLoadingCategories] = useState(false);
 
+  // Helper function to format price as Rupiah
+  const formatRupiah = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   useEffect(() => {
     let cancelled = false;
 
@@ -213,8 +223,16 @@ const Products = ({ reloadKey }: ProductsProps) => {
       alert("Stok harus berupa angka yang valid.");
       return;
     }
+    if (stockValue !== null && stockValue < 0) {
+      alert("Stok tidak boleh bernilai negatif.");
+      return;
+    }
     if (Number.isNaN(priceValue as number) && priceValue !== null) {
       alert("Harga harus berupa angka yang valid.");
+      return;
+    }
+    if (priceValue !== null && priceValue < 0) {
+      alert("Harga tidak boleh bernilai negatif.");
       return;
     }
 
@@ -380,7 +398,7 @@ const Products = ({ reloadKey }: ProductsProps) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-[#ff6600]">
                   {typeof product.price === "number"
-                    ? product.price
+                    ? formatRupiah(product.price)
                     : "Contact for pricing"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
@@ -535,6 +553,8 @@ const Products = ({ reloadKey }: ProductsProps) => {
                   Harga
                 </label>
                 <Input
+                  type="number"
+                  min={0}
                   value={editPrice}
                   onChange={(e) => setEditPrice(e.target.value)}
                   placeholder="Kosongkan jika tidak ingin diubah"

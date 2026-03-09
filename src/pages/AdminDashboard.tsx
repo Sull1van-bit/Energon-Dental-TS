@@ -9,20 +9,20 @@ import ManageCategories from "@/components/admin/ManageCategories";
 const AdminDashboard = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
-  const [selectedMenu, setSelectedMenu] = useState<'products' | 'brands' | 'categories' | 'users'>('products');
+  const [selectedMenu, setSelectedMenu] = useState<'products' | 'brands' | 'categories'>('products');
   const [openCreateProductModal, setOpenCreateProductModal] = useState(false);
   const [productsReloadKey, setProductsReloadKey] = useState(0);
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/admin/login");
+      navigate("/");
     }
   }, [user, loading, navigate]);
 
   const handleLogout = async () => {
     const { error } = await signOut();
     if (!error) {
-      navigate("/admin/login");
+      navigate("/");
     }
   };
 
@@ -86,18 +86,6 @@ const AdminDashboard = () => {
                   Categories
                 </button>
               </li>
-              <li>
-                <button
-                  className={`w-full text-left py-3 px-6 flex items-center transition font-medium ${
-                    selectedMenu === 'users'
-                      ? 'bg-[#ff6600] text-white'
-                      : 'bg-white text-gray-700 hover:bg-orange-100'
-                  }`}
-                  onClick={() => setSelectedMenu('users')}
-                >
-                  Users
-                </button>
-              </li>
             </ul>
           </nav>
         </div>
@@ -145,17 +133,6 @@ const AdminDashboard = () => {
           <section>
             <div className="bg-white shadow rounded-lg p-6">
               <ManageCategories />
-            </div>
-          </section>
-        )}
-        {selectedMenu === 'users' && (
-          <section>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
-            </div>
-            <div className="bg-white shadow rounded-lg p-6 min-h-[200px] flex items-center justify-center text-gray-400">
-              {/* TODO: Ganti dengan komponen tabel user nanti */}
-              User table coming soon...
             </div>
           </section>
         )}

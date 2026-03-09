@@ -237,9 +237,17 @@ const CreateProducts = ({ open, onClose, onCreated }: CreateProductsProps) => {
               <Label>Harga (IDR) *</Label>
               <Input
                 type="number"
+                min={0}
                 placeholder="5000000"
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '' || parseFloat(value) >= 0) {
+                    setPrice(value);
+                  } else {
+                    alert('Harga tidak boleh minus!');
+                  }
+                }}
                 required
               />
             </div>
@@ -252,8 +260,12 @@ const CreateProducts = ({ open, onClose, onCreated }: CreateProductsProps) => {
                 placeholder="10"
                 value={stock}
                 onChange={(e) => {
-                  const v = e.target.value;
-                  setStock(v === '' ? '' : Number(v));
+                  const value = e.target.value;
+                  if (value === '' || parseFloat(value) >= 0) {
+                    setStock(value === '' ? '' : Number(value));
+                  } else {
+                    alert('Stok tidak boleh minus!');
+                  }
                 }}
                 required
               />
