@@ -15,7 +15,4 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  define: {
-    __REACT_DEVTOOLS_GLOBAL_HOOK__: '({ isDisabled: true })'
-  },
 }));
