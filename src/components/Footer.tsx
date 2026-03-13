@@ -30,15 +30,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div>
-            <h4 className="font-bold mb-4">Products</h4>
-            <ul className="space-y-2 text-sm">
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Surgical Instruments</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Diagnostic Equipment</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Precision Handpieces</a></li>
-            </ul>
-          </div>
-
+          
           <div>
             <h4 className="font-bold mb-4">Contact</h4>
             <ul className="space-y-2 text-sm text-gray-400">
@@ -50,7 +42,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-gray-700 pt-8 text-center text-sm text-gray-400">
-          <p>&copy; 2025 Energon Dental. All rights reserved.</p>
+          <p>&copy; 2020 Energon Dental. All rights reserved.</p>
         </div>
       </div>
     </footer>
