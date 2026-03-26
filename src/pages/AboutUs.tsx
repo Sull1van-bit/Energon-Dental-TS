@@ -130,7 +130,7 @@ Menjadi partner terpercaya klinik gigi di <span className="text-primary font-sem
                 <div className="container mx-auto px-6">
                     <div className="text-center mb-16 animate-fade-in">
                         <h2 className="text-4xl font-bold text-foreground mb-4">
-                            Nilai Perusahaan (Core Values)
+                            Nilai Perusahaan 
                         </h2>
                         <p className="text-muted-foreground max-w-2xl mx-auto">
                             Prinsip utama yang menjadi pedoman kami dalam setiap langkah bisnis
@@ -174,14 +174,11 @@ Menjadi partner terpercaya klinik gigi di <span className="text-primary font-sem
                             Kami siap membantu Anda menemukan solusi terbaik untuk praktik dental Anda.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <Button className="bg-primary hover:bg-primary/90 text-white shadow-medium">
-                                <Mail className="w-5 h-5 mr-2" />
-                                Kirim Email
-                            </Button>
-                            <Button variant="outline" className="shadow-medium" onClick={handleContactWhatsApp}>
+                            <Button className="" onClick={handleContactWhatsApp}>
                                 <Phone className="w-5 h-5 mr-2" />
                                 Hubungi Kami
                             </Button>
+                          
                         </div>
                     </div>
                 </div>
