@@ -7,18 +7,18 @@ import dentalTools3 from "@/assets/dental-tools-3.jpg";
 
 const products = [
   {
-    title: "Surgical Instruments",
-    description: "Our surgical instruments offer a wide range of specialized tools for all your dental surgery needs.",
+    title: "Instrumen Bedah",
+    description: "Instrumen bedah kami menyediakan beragam alat khusus untuk memenuhi kebutuhan bedah dental Anda.",
     image: dentalTools1,
   },
   {
-    title: "Diagnostic Equipment",
-    description: "We provide a comprehensive selection of advanced diagnostic equipment and technology solutions.",
+    title: "Peralatan Diagnostik",
+    description: "Kami menyediakan pilihan lengkap peralatan diagnostik canggih dan solusi teknologi modern.",
     image: dentalTools2,
   },
   {
-    title: "Precision Handpieces",
-    description: "Our handpiece collection offers a wide selection of top-of-the-line dental equipment for optimal performance.",
+    title: "Handpiece Presisi",
+    description: "Koleksi handpiece kami menghadirkan berbagai peralatan dental berkualitas tinggi untuk performa optimal.",
     image: dentalTools3,
   },
 ];
@@ -29,9 +29,9 @@ const ProductsSection = () => {
       <div className="container mx-auto px-6">
         <div className="text-center mb-16 animate-fade-in">
           <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Explore Our Range of
+            Jelajahi Beragam
             <br />
-            <span className="text-primary">Dental Equipment</span>
+            <span className="text-primary">Peralatan Dental</span>
           </h2>
         </div>
 
@@ -58,7 +58,7 @@ const ProductsSection = () => {
                 </p>
                 <Link to="/products">
                   <Button variant="ghost" className="text-primary hover:text-primary/80 p-0 h-auto font-semibold">
-                    Learn more →
+                    Lihat selengkapnya →
                   </Button>
                 </Link>
               </div>

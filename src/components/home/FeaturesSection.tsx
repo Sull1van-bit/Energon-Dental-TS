@@ -5,46 +5,50 @@ import { DollarSign, Wrench, Settings, Clock } from "lucide-react";
 const features = [
   {
     icon: DollarSign,
-    title: "Flexible and Cost-Effective",
-    description: "Flexible solutions designed to suit your practice needs without the overhead costs. Our leasing options make high-quality equipment accessible to practices of all sizes."
+    title: "Fleksibel dan Hemat Biaya",
+    description: "Solusi fleksibel yang dirancang sesuai kebutuhan praktik Anda tanpa biaya operasional berlebih. Opsi kami membuat peralatan berkualitas tinggi lebih mudah diakses untuk klinik dengan berbagai skala."
   },
   {
     icon: Wrench,
-    title: "Reduced Maintenance and Downtime",
-    description: "Stay productive with reliable dental equipment and warranty. Without administrative burden, less paper and labor, our service reduces downtime with quick support."
+    title: "Perawatan dan Downtime Lebih Rendah",
+    description: "Tetap produktif dengan peralatan dental yang andal serta dukungan garansi. Dengan proses yang lebih praktis dan dukungan cepat, layanan kami membantu mengurangi downtime operasional."
   },
   {
     icon: Settings,
-    title: "Versatility and Scalability",
-    description: "As practices grow, our equipment offers scalability. With our versatile product range, we ensure you have access to the latest technology that grows with your practice."
+    title: "Serbaguna dan Skalabel",
+    description: "Seiring pertumbuhan praktik Anda, peralatan kami dirancang agar mudah ditingkatkan. Dengan pilihan produk yang serbaguna, Anda dapat terus mengakses teknologi terbaru yang berkembang bersama klinik Anda."
   },
   {
     icon: Clock,
-    title: "Timely Delivery and Pickup",
-    description: "We understand the importance of deadlines. Our quick delivery service ensures equipment arrives when you need it, with hassle-free pickup when you're done."
+    title: "Pengiriman dan Penjemputan Tepat Waktu",
+    description: "Kami memahami pentingnya ketepatan waktu. Layanan pengiriman cepat kami memastikan peralatan tiba saat dibutuhkan, dengan proses penjemputan kembali yang mudah saat selesai digunakan."
   }
 ];
 
 const FeaturesSection = () => {
+  const handleContactWhatsApp = () => {
+    const message = "Halo, saya ingin konsultasi produk dental.";
+    const whatsappUrl = `https://wa.me/6285717796330?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
   return (
     <section id="services" className="py-24 bg-background">
       <div className="container mx-auto px-6">
         <div className="grid md:grid-cols-2 gap-12 items-start">
           <div className="animate-slide-in">
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-              Unlock the Advantages of{" "}
-              <span className="text-secondary">Professional Dental Equipment</span>
+              Dapatkan Keunggulan{" "}
+              <span className="text-secondary">Peralatan Dental Profesional</span>
             </h2>
             <p className="text-muted-foreground mb-8 leading-relaxed">
-              At Energon Dental, we take pride in providing dental equipment solutions
-              that go beyond expectations. Our comprehensive product line is designed 
-              to keep your practice running efficiently. Whether you need a specialized 
-              tool for surgical work or the latest diagnostic equipment, our range 
-              of offerings has you covered.
+              Di Energon Dental, kami bangga menghadirkan solusi peralatan dental
+              yang melampaui ekspektasi. Lini produk kami yang komprehensif dirancang
+              untuk menjaga praktik Anda tetap efisien. Baik Anda membutuhkan alat
+              khusus untuk tindakan bedah maupun peralatan diagnostik terbaru,
+              kami siap memenuhi kebutuhan tersebut.
             </p>
-            <Button className="bg-primary hover:bg-primary/90 text-white shadow-medium">
-              Contact us
-            </Button>
+       
           </div>
 
           <div className="space-y-6">

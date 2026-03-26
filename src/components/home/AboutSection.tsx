@@ -3,40 +3,44 @@ import { Mail } from "lucide-react";
 import dentalTools1 from "@/assets/dental-tools-1.jpg";
 
 const AboutSection = () => {
+  const handleContactWhatsApp = () => {
+    const message = "Halo, saya ingin konsultasi produk dental.";
+    const whatsappUrl = `https://wa.me/6285717796330?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
   return (
     <section id="about" className="py-24 bg-background">
       <div className="container mx-auto px-6">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="animate-slide-in">
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-              Passionate About
+              Berdedikasi untuk
               <br />
-              <span className="text-secondary">Dental Excellence</span>
+              <span className="text-secondary">Keunggulan Dental</span>
             </h2>
             <p className="text-muted-foreground mb-4 leading-relaxed">
-              Energon Dental is at the forefront of dental tools, offering passionate
-              solutions that drive success. Committed to dentist satisfaction,
-              innovation, and embracing today's technology, we ensure excellence
-              in every product.
+              Energon Dental berada di garis depan penyedia alat dental, menghadirkan
+              solusi terbaik yang mendorong keberhasilan praktik Anda. Dengan komitmen
+              pada kepuasan dokter gigi, inovasi, dan pemanfaatan teknologi terkini,
+              kami memastikan kualitas unggul pada setiap produk.
             </p>
             <p className="text-muted-foreground mb-8 leading-relaxed">
-              We believe that success is the right equipment combined with the right
-              techniques. Experience a transformative dentistry journey—one step at a
-              time. Our dedication is to dental practice improvement that combines
-              modern tools with proven techniques to drive better outcomes.
+              Kami percaya bahwa keberhasilan ditentukan oleh kombinasi peralatan
+              yang tepat dan teknik yang benar. Rasakan perjalanan praktik kedokteran
+              gigi yang transformatif, selangkah demi selangkah. Dedikasi kami adalah
+              meningkatkan layanan dental melalui perpaduan alat modern dan metode
+              yang telah terbukti untuk hasil yang lebih baik.
             </p>
-            <Button className="bg-primary hover:bg-primary/90 text-white shadow-medium">
-              <Mail className="w-5 h-5 mr-2" />
-              Contact us
-            </Button>
-          </div>
+      
+          </div>  
 
           <div className="animate-scale-in">
             <div className="relative">
               <div className="aspect-[4/5] rounded-2xl overflow-hidden shadow-large">
                 <img
                   src={dentalTools1}
-                  alt="Professional dental tools"
+                  alt="Peralatan dental profesional"
                   className="w-full h-full object-cover"
                 />
               </div>

@@ -35,11 +35,11 @@ import { supabase } from "@/lib/supabase";
 const INITIAL_VISIBLE = 4;
 
 const SORT_OPTIONS = {
-  "name-asc": "Name A-Z",
-  "name-desc": "Name Z-A", 
-  "price-asc": "Price Low to High",
-  "price-desc": "Price High to Low",
-  "brand": "Brand"
+  "name-asc": "Nama A-Z",
+  "name-desc": "Nama Z-A", 
+  "price-asc": "Harga Terendah",
+  "price-desc": "Harga Tertinggi",
+  "brand": "Merek"
 };
 
 const Products = () => {
@@ -85,7 +85,7 @@ const Products = () => {
   // Helper functions
   const categorizeProduct = (product: any): string => {
     // Use category from database relationship or fallback
-    return product.category || "Other";
+    return product.category || "Lainnya";
   };
   
   const parsePrice = (priceStr: string): number => {
@@ -196,10 +196,11 @@ const Products = () => {
 
   const handleWhatsAppOrder = () => {
     if (!selectedProduct) return;
-    const message = `Hi, I'm interested in ordering: ${selectedProduct.name}`;
-    const whatsappUrl = `https://wa.me/1234567890?text=${encodeURIComponent(message)}`;
+    const message = `Halo, saya tertarik untuk memesan : ${selectedProduct.name}`;
+    const whatsappUrl = `https://wa.me/6285717796330?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
+   
 
   return (
     <div className="min-h-screen bg-background">
@@ -212,12 +213,12 @@ const Products = () => {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link to="/">Home</Link>
+                  <Link to="/">Beranda</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>Products</BreadcrumbPage>
+                <BreadcrumbPage>Produk</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -226,10 +227,10 @@ const Products = () => {
         {/* Header */}
         <div className="text-center mb-12 animate-fade-in">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-            Our Products
+            Produk Kami
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Explore our comprehensive range of professional dental equipment and instruments
+            Jelajahi berbagai peralatan dan instrumen dental profesional kami
           </p>
         </div>
 
@@ -240,7 +241,7 @@ const Products = () => {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Search products..."
+                placeholder="Cari produk..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -254,7 +255,7 @@ const Products = () => {
               className="gap-2 lg:hidden"
             >
               <Filter className="h-4 w-4" />
-              Filters
+              Filter
             </Button>
             
             {/* Sort */}
@@ -281,7 +282,7 @@ const Products = () => {
               <div className="absolute inset-0 bg-black/50" onClick={() => setShowFilters(false)} />
               <div className="absolute bottom-0 left-0 right-0 bg-background rounded-t-xl p-6 space-y-4 max-h-[80vh] overflow-y-auto">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold">Filters</h3>
+                  <h3 className="text-lg font-semibold">Filter</h3>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -295,13 +296,13 @@ const Products = () => {
                 <div className="space-y-4">
                   {/* Category Filter */}
                   <div>
-                    <Label className="text-sm font-medium">Category</Label>
+                    <Label className="text-sm font-medium">Kategori</Label>
                     <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                       <SelectTrigger className="mt-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
+                        <SelectItem value="all">Semua Kategori</SelectItem>
                         {availableCategories.map(category => (
                           <SelectItem key={category.id} value={category.slug}>
                             {category.name}
@@ -313,13 +314,13 @@ const Products = () => {
                   
                   {/* Brand Filter */}
                   <div>
-                    <Label className="text-sm font-medium">Brand</Label>
+                    <Label className="text-sm font-medium">Merek</Label>
                     <Select value={selectedBrand} onValueChange={setSelectedBrand}>
                       <SelectTrigger className="mt-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Brands</SelectItem>
+                        <SelectItem value="all">Semua Merek</SelectItem>
                         {availableBrands.map(brand => (
                           <SelectItem key={brand} value={brand}>
                             {brand}
@@ -332,20 +333,20 @@ const Products = () => {
                   {/* Price Range */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm font-medium">Min Price (IDR)</Label>
+                      <Label className="text-sm font-medium">Harga Minimum (IDR)</Label>
                       <Input
                         type="number"
-                        placeholder="e.g. 100000"
+                        placeholder="contoh 100000"
                         value={priceMin}
                         onChange={(e) => setPriceMin(e.target.value)}
                         className="mt-1"
                       />
                     </div>
                     <div>
-                      <Label className="text-sm font-medium">Max Price (IDR)</Label>
+                      <Label className="text-sm font-medium">Harga Maksimum (IDR)</Label>
                       <Input
                         type="number"
-                        placeholder="e.g. 10000000"
+                        placeholder="contoh 10000000"
                         value={priceMax}
                         onChange={(e) => setPriceMax(e.target.value)}
                         className="mt-1"
@@ -365,13 +366,13 @@ const Products = () => {
                         setPriceMax("");
                       }}
                     >
-                      Clear Filters
+                      Reset Filter
                     </Button>
                     <Button
                       className="flex-1"
                       onClick={() => setShowFilters(false)}
                     >
-                      Apply
+                      Terapkan
                     </Button>
                   </div>
                 </div>
@@ -383,13 +384,13 @@ const Products = () => {
           <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg">
             {/* Category Filter */}
             <div>
-              <Label className="text-sm font-medium">Category</Label>
+              <Label className="text-sm font-medium">Kategori</Label>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="mt-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="all">Semua Kategori</SelectItem>
                   {availableCategories.map(category => (
                     <SelectItem key={category.id} value={category.slug}>
                       {category.name}
@@ -401,13 +402,13 @@ const Products = () => {
             
             {/* Brand Filter */}
             <div>
-              <Label className="text-sm font-medium">Brand</Label>
+              <Label className="text-sm font-medium">Merek</Label>
               <Select value={selectedBrand} onValueChange={setSelectedBrand}>
                 <SelectTrigger className="mt-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Brands</SelectItem>
+                  <SelectItem value="all">Semua Merek</SelectItem>
                   {availableBrands.map(brand => (
                     <SelectItem key={brand} value={brand}>
                       {brand}
@@ -419,10 +420,10 @@ const Products = () => {
             
             {/* Price Range */}
             <div>
-              <Label className="text-sm font-medium">Min Price (IDR)</Label>
+              <Label className="text-sm font-medium">Harga Minimum (IDR)</Label>
               <Input
                 type="number"
-                placeholder="e.g. 100000"
+                placeholder="contoh 100000"
                 value={priceMin}
                 onChange={(e) => setPriceMin(e.target.value)}
                 className="mt-1"
@@ -430,10 +431,10 @@ const Products = () => {
             </div>
             
             <div>
-              <Label className="text-sm font-medium">Max Price (IDR)</Label>
+              <Label className="text-sm font-medium">Harga Maksimum (IDR)</Label>
               <Input
                 type="number"
-                placeholder="e.g. 10000000"
+                placeholder="contoh 10000000"
                 value={priceMax}
                 onChange={(e) => setPriceMax(e.target.value)}
                 className="mt-1"
@@ -473,9 +474,9 @@ const Products = () => {
             {/* Results Count and Actions */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <p className="text-sm text-muted-foreground">
-                Showing <span className="font-semibold">{filteredProducts.length}</span> products
+                Menampilkan <span className="font-semibold">{filteredProducts.length}</span> produk
                 {(selectedCategory !== "all" || selectedBrand !== "all" || searchQuery || priceMin || priceMax) && 
-                  <span className="text-primary"> (filtered)</span>}
+                  <span className="text-primary"> (difilter)</span>}
               </p>
               
               {(selectedCategory !== "all" || selectedBrand !== "all" || searchQuery || priceMin || priceMax) && (
@@ -491,7 +492,7 @@ const Products = () => {
                   }}
                   className="gap-2"
                 >
-                  Clear all filters
+                  Reset semua filter
                 </Button>
               )}
             </div>
@@ -515,7 +516,7 @@ const Products = () => {
                       <h2 className="text-2xl font-bold text-foreground">
                         {brand}
                         <span className="ml-2 text-sm font-normal text-muted-foreground">
-                          ({products.length} products)
+                          ({products.length} produk)
                         </span>
                       </h2>
                     </div>
@@ -541,11 +542,7 @@ const Products = () => {
                                 {/* Brand Badge */}
                                 <div className="absolute top-2 left-2 bg-background/90 backdrop-blur-sm rounded-full px-3 py-1 border">
                                   <div className="flex items-center gap-2">
-                                    <img
-                                      src={brandLogo}
-                                      alt={`${product.brand} logo`}
-                                      className="h-4 w-auto object-contain"
-                                    />
+        
                                     <span className="text-xs font-medium">{product.brand}</span>
                                   </div>
                                 </div>
@@ -564,7 +561,7 @@ const Products = () => {
                                 </p>
                                 {product.stock !== undefined && (
                                   <p className="text-sm text-muted-foreground mb-2">
-                                    Stock: {typeof product.stock === "number" ? product.stock : "Contact admin"}
+                                    Stok: {typeof product.stock === "number" ? product.stock : "Hubungi admin"}
                                   </p>
                                 )}
                                 <p className="text-primary font-semibold">
@@ -590,12 +587,12 @@ const Products = () => {
                           {isExpanded ? (
                             <>
                               <ChevronUp className="h-4 w-4" />
-                              Show less
+                              Tampilkan lebih sedikit
                             </>
                           ) : (
                             <>
                               <ChevronDown className="h-4 w-4" />
-                              Show more ({products.length - INITIAL_VISIBLE} more products)
+                              Tampilkan lebih banyak ({products.length - INITIAL_VISIBLE} produk lagi)
                             </>
                           )}
                         </Button>
@@ -608,8 +605,8 @@ const Products = () => {
               <div className="text-center py-12">
                 <p className="text-muted-foreground mb-4">
                   {searchQuery || selectedCategory !== "all" || selectedBrand !== "all" || priceMin || priceMax
-                    ? "No products found matching your criteria."
-                    : "No products available. Admin can add products from the dashboard."}
+                    ? "Tidak ada produk yang sesuai dengan kriteria Anda."
+                    : "Belum ada produk tersedia. Admin dapat menambahkan produk dari dashboard."}
                 </p>
                 {(searchQuery || selectedCategory !== "all" || selectedBrand !== "all" || priceMin || priceMax) && (
                   <Button
@@ -622,7 +619,7 @@ const Products = () => {
                       setPriceMax("");
                     }}
                   >
-                    Clear all filters
+                    Reset semua filter
                   </Button>
                 )}
               </div>
@@ -632,7 +629,7 @@ const Products = () => {
       </main>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           {selectedProduct && (
             <>
               <DialogHeader>
@@ -640,7 +637,7 @@ const Products = () => {
                   {selectedProduct.name}
                 </DialogTitle>
                 <DialogDescription className="text-base">
-                  Professional dental equipment - Contact us for more information
+                  Peralatan dental profesional - Hubungi kami untuk informasi lebih lanjut
                 </DialogDescription>
               </DialogHeader>
               
@@ -648,34 +645,33 @@ const Products = () => {
                 <img
                   src={selectedProduct.image}
                   alt={selectedProduct.name}
-                  className="w-full max-w-[800px] mx-auto object-cover rounded-lg border"
-                  style={{ aspectRatio: '16/9', maxHeight: '450px' }}
+                  className="w-full max-w-[800px] max-h-[60vh] mx-auto object-contain rounded-lg border bg-muted/20"
                 />
                 
                 <div className="space-y-3">
                   <div>
-                    <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Description</h4>
+                    <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Deskripsi</h4>
                     <p className="text-base leading-relaxed">{selectedProduct.description}</p>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Brand</h4>
-                      <p className="text-base">{(selectedProduct as any).brand || "Not specified"}</p>
+                      <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Merek</h4>
+                      <p className="text-base">{(selectedProduct as any).brand || "Tidak tersedia"}</p>
                     </div>
                     
                     {selectedProduct.stock !== undefined && (
                       <div>
-                        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Stock</h4>
+                        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Stok</h4>
                         <p className="text-base">
-                          {typeof selectedProduct.stock === "number" ? selectedProduct.stock : "Contact admin"}
+                          {typeof selectedProduct.stock === "number" ? selectedProduct.stock : "Hubungi admin"}
                         </p>
                       </div>
                     )}
                   </div>
                   
                   <div>
-                    <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Price</h4>
+                    <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Harga</h4>
                     <p className="text-2xl font-bold text-primary">
                       {Number(selectedProduct.price).toLocaleString("id-ID", {
                         style: "currency",
@@ -694,14 +690,14 @@ const Products = () => {
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
                   </svg>
-                  Order via WhatsApp
+                  Pesan via WhatsApp
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
                   className="flex-1"
                 >
-                  Close
+                  Tutup
                 </Button>
               </div>
             </>

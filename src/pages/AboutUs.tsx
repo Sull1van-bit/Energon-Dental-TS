@@ -1,32 +1,43 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Mail, Phone, Award, Users, Target, Heart } from "lucide-react";
+import { Mail, Phone, ShieldCheck, Award, HeartHandshake, Target, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import dentalTools1 from "@/assets/dental-tools-1.jpg";
 import dentalTools2 from "@/assets/dental-tools-2.jpg";
 import dentalTools3 from "@/assets/dental-tools-3.jpg";
 
 const AboutUs = () => {
+    const handleContactWhatsApp = () => {
+        const message = "Halo, saya ingin konsultasi produk dental.";
+        const whatsappUrl = `https://wa.me/6285717796330?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, "_blank");
+    };
+
     const values = [
         {
-            icon: Award,
-            title: "Excellence",
-            description: "We maintain the highest standards in every product we offer, ensuring quality that dentists can trust."
+            icon: ShieldCheck,
+            title: "Integritas",
+            description: "Menjunjung tinggi kejujuran, transparansi, dan etika dalam setiap aspek bisnis."
         },
         {
-            icon: Users,
-            title: "Partnership",
-            description: "We work closely with dental professionals to understand their needs and deliver solutions that matter."
+            icon: Award,
+            title: "Kualitas",
+            description: "Berkomitmen menyediakan produk dental yang berkualitas tinggi dan terpercaya."
+        },
+        {
+            icon: HeartHandshake,
+            title: "Pelayanan Prima",
+            description: "Mengutamakan kepuasan pelanggan melalui layanan yang cepat, responsif, dan profesional."
         },
         {
             icon: Target,
-            title: "Innovation",
-            description: "We stay at the forefront of dental technology, bringing the latest advancements to your practice."
+            title: "Inovasi",
+            description: "Terus mengikuti perkembangan teknologi dan menghadirkan solusi dental yang modern."
         },
         {
-            icon: Heart,
-            title: "Care",
-            description: "We're passionate about supporting dentists who improve lives through exceptional dental care."
+            icon: BadgeCheck,
+            title: "Komitmen",
+            description: "Berdedikasi untuk memberikan yang terbaik dalam mendukung pelayanan kesehatan gigi di Indonesia."
         }
     ];
 
@@ -42,7 +53,7 @@ const AboutUs = () => {
                             About <span className="text-primary">Energon Dental</span>
                         </h1>
                         <p className="text-xl text-muted-foreground">
-                            Your trusted partner in dental excellence since day one
+                            Mitra terpercaya Anda dalam keunggulan layanan dental sejak awal
                         </p>
                     </div>
                 </div>
@@ -54,21 +65,13 @@ const AboutUs = () => {
                     <div className="grid md:grid-cols-2 gap-12 items-center">
                         <div className="animate-slide-in">
                             <h2 className="text-4xl font-bold text-foreground mb-6">
-                                Our Story
+                                Cerita Kami
                             </h2>
                             <p className="text-muted-foreground mb-4 leading-relaxed">
-                                Energon Dental was founded with a singular vision: to empower dental professionals
-                                with the finest tools and equipment available. We understand that exceptional
-                                dental care starts with exceptional instruments.
+                               Energon Bintang Mulia adalah perusahaan yang bergerak di bidang impor produk dental serta distribusinya ke klinik dokter gigi, rumah sakit swasta maupun pemerintah, dan jaringan distributor di seluruh Indonesia. Perusahaan ini didirikan oleh sosok berpengalaman lebih dari 20 tahun di industri dental, yang memiliki pemahaman mendalam terhadap kebutuhan praktisi kesehatan gigi.
                             </p>
                             <p className="text-muted-foreground mb-4 leading-relaxed">
-                                Over the years, we've built strong relationships with leading manufacturers
-                                and dental practitioners worldwide. This allows us to curate a selection of
-                                products that truly make a difference in daily practice.
-                            </p>
-                            <p className="text-muted-foreground leading-relaxed">
-                                Today, we serve dental professionals across the region, providing not just
-                                products, but comprehensive support and expertise to help practices thrive.
+                           Berangkat dari pengalaman tersebut, Energon Bintang Mulia hadir dengan komitmen untuk memberikan solusi terbaik bagi klinik dan tenaga medis, melalui penyediaan alat dan bahan dental berkualitas tinggi dengan harga yang tetap kompetitif dan terjangkau. Seiring waktu, perusahaan terus berkembang dan dipercaya sebagai mitra dalam mendukung pelayanan kesehatan gigi di Indonesia.
                             </p>
                         </div>
 
@@ -76,14 +79,14 @@ const AboutUs = () => {
                             <div className="aspect-square rounded-2xl overflow-hidden shadow-large">
                                 <img
                                     src={dentalTools1}
-                                    alt="Professional dental equipment"
+                                    alt="Peralatan dental profesional"
                                     className="w-full h-full object-cover"
                                 />
                             </div>
                             <div className="aspect-square rounded-2xl overflow-hidden shadow-large mt-8">
                                 <img
                                     src={dentalTools2}
-                                    alt="Dental tools showcase"
+                                    alt="Koleksi peralatan dental"
                                     className="w-full h-full object-cover"
                                 />
                             </div>
@@ -97,12 +100,26 @@ const AboutUs = () => {
                 <div className="container mx-auto px-6">
                     <div className="max-w-4xl mx-auto text-center animate-fade-in">
                         <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-                            Our Mission
+                            Visi kami
                         </h2>
                         <p className="text-xl text-muted-foreground leading-relaxed">
-                            To empower dentists with the <span className="text-primary font-semibold">machinery, tools, and expertise</span> they
-                            need to optimize productivity, increase sustainability, and drive profitability
-                            while delivering exceptional patient care.
+        Visi
+Menjadi partner terpercaya klinik gigi di <span className="text-primary font-semibold">seluruh Indonesia</span> dalam menyediakan produk dental berkualitas.
+                        </p>
+                    </div>
+                </div>
+                <br />
+                <div className="container mx-auto px-6">
+                    <div className="max-w-4xl mx-auto text-center animate-fade-in">
+                        <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
+                            Misi Kami
+                        </h2>
+                        <p className="text-xl text-muted-foreground leading-relaxed">
+                       Menghadirkan produk dental terbaik dengan harga yang kompetitif,
+                            mendukung dokter gigi melalui <span className="text-primary font-semibold">solusi praktis dan inovatif</span>,
+                            memperluas distribusi agar produk mudah dijangkau di seluruh Indonesia,
+                            memberikan pelayanan yang cepat, ramah, dan dapat diandalkan,
+                            serta tumbuh bersama mitra dan pelanggan untuk kemajuan layanan kesehatan gigi.
                         </p>
                     </div>
                 </div>
@@ -113,14 +130,14 @@ const AboutUs = () => {
                 <div className="container mx-auto px-6">
                     <div className="text-center mb-16 animate-fade-in">
                         <h2 className="text-4xl font-bold text-foreground mb-4">
-                            Our Values
+                            Nilai Perusahaan (Core Values)
                         </h2>
                         <p className="text-muted-foreground max-w-2xl mx-auto">
-                            The principles that guide everything we do
+                            Prinsip utama yang menjadi pedoman kami dalam setiap langkah bisnis
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {values.map((value, index) => {
                             const Icon = value.icon;
                             return (
@@ -150,20 +167,20 @@ const AboutUs = () => {
                 <div className="container mx-auto px-6">
                     <div className="max-w-3xl mx-auto text-center animate-fade-in">
                         <h2 className="text-4xl font-bold text-foreground mb-6">
-                            Let's Work Together
+                            Mari Bekerja Sama
                         </h2>
                         <p className="text-muted-foreground mb-8">
-                            Have questions about our products or services? We're here to help
-                            you find the perfect solutions for your dental practice.
+                            Punya pertanyaan tentang produk atau layanan kami?
+                            Kami siap membantu Anda menemukan solusi terbaik untuk praktik dental Anda.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <Button className="bg-primary hover:bg-primary/90 text-white shadow-medium">
                                 <Mail className="w-5 h-5 mr-2" />
-                                Email Us
+                                Kirim Email
                             </Button>
-                            <Button variant="outline" className="shadow-medium">
+                            <Button variant="outline" className="shadow-medium" onClick={handleContactWhatsApp}>
                                 <Phone className="w-5 h-5 mr-2" />
-                                Call Us
+                                Hubungi Kami
                             </Button>
                         </div>
                     </div>

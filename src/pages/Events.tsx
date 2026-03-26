@@ -35,19 +35,19 @@ const Events = () => {
         {
             id: 1,
             title: "Foril 2025",
-            date: "March 15, 2025",
+            date: "15 Maret 2025",
             instagramUrl: "https://www.instagram.com/reel/DOGw9kmEm3Z/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
         },
         {
             id: 2,
             title: "IDS 2025",
-            date: "April 20, 2025",
+            date: "20 April 2025",
             instagramUrl: "https://www.instagram.com/reel/DMNSLAbScYh/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
         },
         {
             id: 3,
-            title: "Dental Health Workshop",
-            date: "May 10, 2025",
+            title: "Lokakarya Kesehatan Gigi",
+            date: "10 Mei 2025",
             instagramUrl: "https://www.instagram.com/reel/DPdkT-FD5BW/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
         },
     ];
@@ -61,10 +61,10 @@ const Events = () => {
                     {/* Header */}
                     <div className="text-center mb-16">
                         <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                            Our Events
+                            Acara Kami
                         </h1>
                         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                            Stay updated with our upcoming events, workshops, and conferences
+                            Tetap update dengan acara, lokakarya, dan konferensi terbaru kami
                         </p>
                     </div>
 
@@ -111,7 +111,7 @@ const Events = () => {
                                                         width: '100%'
                                                     }}
                                                 >
-                                                    View this post on Instagram
+                                                    Lihat postingan ini di Instagram
                                                 </a>
                                             </div>
                                         </blockquote>

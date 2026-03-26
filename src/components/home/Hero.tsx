@@ -3,6 +3,12 @@ import { ArrowRight, Mail } from "lucide-react";
 import heroImage from "@/assets/hero.jpg";
 
 const Hero = () => {
+  const handleContactWhatsApp = () => {
+    const message = "Halo, saya ingin konsultasi produk dental.";
+    const whatsappUrl = `https://wa.me/6285717796330?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
   return (
     <section id="home" className="relative min-h-screen flex items-center pt-20">
       <div 
@@ -17,23 +23,23 @@ const Hero = () => {
       <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-3xl animate-fade-in">
           <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6 leading-tight">
-            Empowering Dentists with
-            <span className="text-primary"> Precision Tools</span>
+          Partner Terpercaya untuk 
+            <span className="text-primary"> Solusi Produk Dental Berkualitas </span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed max-w-2xl">
-            Elevating dental care with innovation. Our advanced dental solutions blend 
-            cutting-edge technology with deep insights to revolutionize how you practice.
+          Menyediakan alat dan bahan dental berkualitas tinggi dengan harga kompetitif untuk klinik, rumah sakit, dan distributor di seluruh Indonesia.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button size="lg" className="bg-primary hover:bg-primary/90 text-white shadow-medium group">
+            <Button
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-white shadow-medium group"
+              onClick={handleContactWhatsApp}
+            >
               <Mail className="w-5 h-5 mr-2" />
-              Contact us
+              Hubungi Kami
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button size="lg" variant="outline" className="border-2 hover:bg-accent">
-              Find out more
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
+    
           </div>
         </div>
       </div>

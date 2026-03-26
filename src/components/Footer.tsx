@@ -11,12 +11,11 @@ const Footer = () => {
               <img src={logo} alt="DentalPro Logo" className="w-32 h-auto" />
             </div>
             <p className="text-gray-400 text-sm">
-              Empowering dental practices with cutting-edge equipment and solutions.
-            </p>
+Menyediakan alat dan bahan dental berkualitas tinggi dengan harga kompetitif untuk klinik, rumah sakit, dan distributor di seluruh Indonesia.            </p>
           </div>
 
           <div>
-            <h4 className="font-bold mb-4">Quick Links</h4>
+            <h4 className="font-bold mb-4">Akses Cepat</h4>
             <ul className="space-y-2 text-sm">
               <li><Link to="/" className="text-gray-400 hover:text-white transition-colors">Home</Link></li>
               <li><Link to="/products" className="text-gray-400 hover:text-white transition-colors">Products</Link></li>
@@ -32,11 +31,11 @@ const Footer = () => {
 
           
           <div>
-            <h4 className="font-bold mb-4">Contact</h4>
+            <h4 className="font-bold mb-4">Kontak</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li>Email: info@gmail.com</li>
-              <li>Phone: +62 123-4567-8910</li>
-              <li>Address: 123 Jalan sudirman, Medang</li>
+              <li>Email : energonbintangmulia@gmail.com</li>
+              <li>Nomer admin : +62 0857 1779 6330</li>
+              <li>Alamat: Mutiara Taman Palem, Jakarta Barat</li>
             </ul>
           </div>
         </div>
