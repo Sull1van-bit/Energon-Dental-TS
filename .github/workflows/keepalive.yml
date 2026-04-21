@@ -1,0 +1,14 @@
+name: Supabase Keepalive
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        run: |
+          curl -X GET "${{ secrets.VITE_SUPABASE_URL }}/rest/v1/" \
+          -H "apikey: ${{ secrets.VITE_SUPABASE_ANON_KEY }}"
