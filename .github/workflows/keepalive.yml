@@ -2,12 +2,11 @@ name: Supabase Keepalive
 
 on:
   schedule:
-    cron: '0 0 */5 * *'  # 5 hari sekali
-workflow_dispatch:  # trigger manual
-
+    - cron: '0 0 */5 * *'
+  workflow_dispatch:
 
 jobs:
-  keepalive:
+  ping:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Supabase
