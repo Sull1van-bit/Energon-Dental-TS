@@ -9,6 +9,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -25,14 +35,81 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useProducts, type ProductItem, type ProductsData } from "@/hooks/useProducts";
-import { ChevronDown, ChevronUp, Search, Filter, SortAsc } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Search,
+  Filter,
+  SortAsc,
+  ShoppingCart,
+  Plus,
+  Minus,
+  Trash2,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 
 const INITIAL_VISIBLE = 4;
+const WHATSAPP_NUMBER = "6285717796330";
+/** Hanya untuk menghapus data keranjang lama dari versi yang memakai localStorage */
+const LEGACY_CART_STORAGE_KEY = "energon-dental-cart";
+
+type ProductWithBrand = ProductItem & { brand: string; category: string };
+
+type CartLine = {
+  key: string;
+  productId: number;
+  name: string;
+  brand: string;
+  price: number;
+  image: string;
+  quantity: number;
+};
+
+function formatIdr(n: number) {
+  return n.toLocaleString("id-ID", { style: "currency", currency: "IDR" });
+}
+
+function getOriginalPrice(product: ProductItem): number {
+  const numericPrice = typeof product.price === "string" ? Number(product.price) : Number(product.price);
+  return Number.isFinite(numericPrice) && numericPrice > 0 ? numericPrice : 0;
+}
+
+function getDiscountPercent(product: ProductItem): number {
+  const raw = Number(product.discount ?? 0);
+  if (!Number.isFinite(raw)) return 0;
+  return Math.min(100, Math.max(0, raw));
+}
+
+function getEffectivePrice(product: ProductItem): number {
+  const originalPrice = getOriginalPrice(product);
+  const discountPercent = getDiscountPercent(product);
+  if (originalPrice <= 0) return 0;
+  const discounted = Math.round(originalPrice * (1 - discountPercent / 100));
+  return Math.max(0, discounted);
+}
+
+function buildCartWhatsAppMessage(lines: CartLine[], total: number) {
+  const header =
+    "Halo, saya ingin memesan produk berikut dari katalog Energon Dental:\n\n";
+  const body = lines
+    .map((line, i) => {
+      const sub = line.price * line.quantity;
+      return `${i + 1}. ${line.name}\n   Merek: ${line.brand}\n   ${line.quantity} × ${formatIdr(line.price)} = ${formatIdr(sub)}`;
+    })
+    .join("\n\n");
+  const footer = `\n\n*Total belanja: ${formatIdr(total)}*\n\nTerima kasih.`;
+  return header + body + footer;
+}
+
+function openWhatsAppWithText(text: string) {
+  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+  window.open(url, "_blank");
+}
 
 const SORT_OPTIONS = {
   "name-asc": "Nama A-Z",
@@ -44,8 +121,10 @@ const SORT_OPTIONS = {
 
 const Products = () => {
   const { data: productsData, loading } = useProducts();
-  const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<ProductWithBrand | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isAddToCartChoiceOpen, setIsAddToCartChoiceOpen] = useState(false);
   const [expandedBrands, setExpandedBrands] = useState<Set<string>>(new Set());
   
   // Filter and search states
@@ -56,6 +135,81 @@ const Products = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("name-asc");
   const [showFilters, setShowFilters] = useState(false);
+
+  const [cart, setCart] = useState<CartLine[]>([]);
+
+  useEffect(() => {
+    try {
+      localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const cartTotal = useMemo(
+    () => cart.reduce((sum, line) => sum + line.price * line.quantity, 0),
+    [cart],
+  );
+  const cartCount = useMemo(() => cart.reduce((n, line) => n + line.quantity, 0), [cart]);
+
+  const addToCart = (product: ProductWithBrand, qty = 1) => {
+    const key = `${product.brand}-${product.id}`;
+    const price = getEffectivePrice(product);
+    setCart((prev) => {
+      const idx = prev.findIndex((l) => l.key === key);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = {
+          ...next[idx],
+          quantity: next[idx].quantity + qty,
+        };
+        return next;
+      }
+      return [
+        ...prev,
+        {
+          key,
+          productId: product.id,
+          name: product.name,
+          brand: product.brand,
+          price,
+          image: product.image,
+          quantity: qty,
+        },
+      ];
+    });
+  };
+
+  const updateCartQty = (key: string, quantity: number) => {
+    if (quantity < 1) {
+      setCart((prev) => prev.filter((l) => l.key !== key));
+      return;
+    }
+    setCart((prev) => prev.map((l) => (l.key === key ? { ...l, quantity } : l)));
+  };
+
+  const removeCartLine = (key: string) => {
+    setCart((prev) => prev.filter((l) => l.key !== key));
+  };
+
+  const clearCart = () => setCart([]);
+
+  const handleWhatsAppCart = () => {
+    if (cart.length === 0) return;
+    openWhatsAppWithText(buildCartWhatsAppMessage(cart, cartTotal));
+  };
+
+  const handleWhatsAppSingle = (product: ProductWithBrand) => {
+    const originalPrice = getOriginalPrice(product);
+    const discountPercent = getDiscountPercent(product);
+    const finalPrice = getEffectivePrice(product);
+    const priceInfo =
+      discountPercent > 0
+        ? `Harga: ${formatIdr(originalPrice)}\nDiskon: ${discountPercent}%\nHarga setelah diskon: ${formatIdr(finalPrice)}`
+        : `Harga: ${formatIdr(finalPrice)}`;
+    const message = `Halo, saya ingin memesan 1 item:\n\nProduk: ${product.name}\nMerek: ${product.brand}\n${priceInfo}`;
+    openWhatsAppWithText(message);
+  };
   
   // Dynamic categories from database
   const [availableCategories, setAvailableCategories] = useState<{id: string, name: string, slug: string}[]>([]);
@@ -86,11 +240,6 @@ const Products = () => {
   const categorizeProduct = (product: any): string => {
     // Use category from database relationship or fallback
     return product.category || "Lainnya";
-  };
-  
-  const parsePrice = (priceStr: string): number => {
-    const cleanPrice = priceStr.replace(/[^0-9]/g, '');
-    return cleanPrice ? parseInt(cleanPrice) : 0;
   };
   
   // Processed and filtered data
@@ -129,7 +278,7 @@ const Products = () => {
       }
       
       // Price filter
-      const price = parsePrice(product.price);
+      const price = getEffectivePrice(product);
       if (priceMin && price < parseInt(priceMin)) {
         return false;
       }
@@ -154,9 +303,9 @@ const Products = () => {
         case "name-desc":
           return b.name.localeCompare(a.name);
         case "price-asc":
-          return parsePrice(a.price) - parsePrice(b.price);
+          return getEffectivePrice(a) - getEffectivePrice(b);
         case "price-desc":
-          return parsePrice(b.price) - parsePrice(a.price);
+          return getEffectivePrice(b) - getEffectivePrice(a);
         case "brand":
           return a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name);
         default:
@@ -180,7 +329,7 @@ const Products = () => {
     };
   }, [productsData, selectedCategory, selectedBrand, priceMin, priceMax, searchQuery, sortBy]);
 
-  const handleProductClick = (product: ProductItem) => {
+  const handleProductClick = (product: ProductWithBrand) => {
     setSelectedProduct(product);
     setIsDialogOpen(true);
   };
@@ -193,14 +342,6 @@ const Products = () => {
       return next;
     });
   };
-
-  const handleWhatsAppOrder = () => {
-    if (!selectedProduct) return;
-    const message = `Halo, saya tertarik untuk memesan : ${selectedProduct.name}`;
-    const whatsappUrl = `https://wa.me/6285717796330?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-  };
-   
 
   return (
     <div className="min-h-screen bg-background">
@@ -229,9 +370,24 @@ const Products = () => {
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
             Produk Kami
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
             Jelajahi berbagai peralatan dan instrumen dental profesional kami
           </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            className="gap-2 border-primary/30 shadow-sm"
+            onClick={() => setIsCartOpen(true)}
+          >
+            <ShoppingCart className="h-5 w-5 text-primary" />
+            Keranjang belanja
+            {cartCount > 0 ? (
+              <Badge variant="secondary" className="ml-1 tabular-nums">
+                {cartCount}
+              </Badge>
+            ) : null}
+          </Button>
         </div>
 
         {/* Filters and Search */}
@@ -522,10 +678,7 @@ const Products = () => {
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                      {visibleProducts.map((product, index) => {
-                        const brandLogo = (productsData as ProductsData).brandLogos?.[product.brand] ?? "/placeholder.svg";
-                        
-                        return (
+                      {visibleProducts.map((product, index) => (
                           <Card
                             key={product.id}
                             className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105 animate-fade-in"
@@ -539,12 +692,8 @@ const Products = () => {
                                   alt={product.name}
                                   className="w-full h-48 object-contain object-center rounded-t-lg"
                                 />
-                                {/* Brand Badge */}
                                 <div className="absolute top-2 left-2 bg-background/90 backdrop-blur-sm rounded-full px-3 py-1 border">
-                                  <div className="flex items-center gap-2">
-        
-                                    <span className="text-xs font-medium">{product.brand}</span>
-                                  </div>
+                                  <span className="text-xs font-medium">{product.brand}</span>
                                 </div>
                               </div>
                               <div className="p-4">
@@ -556,25 +705,33 @@ const Products = () => {
                                     {product.category}
                                   </span>
                                 )}
-                                <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
+                                <p className="text-muted-foreground text-sm line-clamp-2 whitespace-pre-line mb-3">
                                   {product.description}
                                 </p>
-                                {product.stock !== undefined && (
-                                  <p className="text-sm text-muted-foreground mb-2">
-                                    Stok: {typeof product.stock === "number" ? product.stock : "Hubungi admin"}
+                           
+                                {getDiscountPercent(product) > 0 ? (
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-muted-foreground line-through text-sm">
+                                        {formatIdr(getOriginalPrice(product))}
+                                      </p>
+                                      <span className="inline-flex items-center rounded bg-red-100 text-red-700 text-xs px-2 py-0.5 font-medium">
+                                        -{getDiscountPercent(product)}%
+                                      </span>
+                                    </div>
+                                    <p className="text-primary font-semibold">
+                                      {formatIdr(getEffectivePrice(product))}
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <p className="text-primary font-semibold">
+                                    {formatIdr(getOriginalPrice(product))}
                                   </p>
                                 )}
-                                <p className="text-primary font-semibold">
-                                  {Number(product.price).toLocaleString("id-ID", { 
-                                    style: "currency", 
-                                    currency: "IDR" 
-                                  })}
-                                </p>
                               </div>
                             </CardContent>
                           </Card>
-                        );
-                      })}
+                        ))}
                     </div>
                     
                     {hasMore && (
@@ -651,54 +808,201 @@ const Products = () => {
                 <div className="space-y-3">
                   <div>
                     <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Deskripsi</h4>
-                    <p className="text-base leading-relaxed">{selectedProduct.description}</p>
+                    <p className="text-base leading-relaxed whitespace-pre-line">{selectedProduct.description}</p>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Merek</h4>
-                      <p className="text-base">{(selectedProduct as any).brand || "Tidak tersedia"}</p>
+                      <p className="text-base">{selectedProduct.brand || "Tidak tersedia"}</p>
                     </div>
                     
-                    {selectedProduct.stock !== undefined && (
-                      <div>
-                        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Stok</h4>
-                        <p className="text-base">
-                          {typeof selectedProduct.stock === "number" ? selectedProduct.stock : "Hubungi admin"}
-                        </p>
-                      </div>
-                    )}
+                  
                   </div>
                   
                   <div>
                     <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Harga</h4>
-                    <p className="text-2xl font-bold text-primary">
-                      {Number(selectedProduct.price).toLocaleString("id-ID", {
-                        style: "currency",
-                        currency: "IDR",
-                      })}
-                    </p>
+                    {getDiscountPercent(selectedProduct) > 0 ? (
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-muted-foreground line-through text-base">
+                            {formatIdr(getOriginalPrice(selectedProduct))}
+                          </p>
+                          <span className="inline-flex items-center rounded bg-red-100 text-red-700 text-xs px-2 py-0.5 font-medium">
+                            -{getDiscountPercent(selectedProduct)}%
+                          </span>
+                        </div>
+                        <p className="text-2xl font-bold text-primary">
+                          {formatIdr(getEffectivePrice(selectedProduct))}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-2xl font-bold text-primary">
+                        {formatIdr(getOriginalPrice(selectedProduct))}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
               
-              <div className="flex flex-col sm:flex-row gap-4 mt-6">
-                <Button
-                  onClick={handleWhatsAppOrder}
-                  className="flex-1 bg-[#25D366] hover:bg-[#20BA5A] text-white gap-2"
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3 mt-6">
+                                <Button
+                  type="button"
+                  onClick={() => handleWhatsAppSingle(selectedProduct)}
+                  className="flex-1 bg-[#25D366] hover:bg-[#20BA5A] text-white gap-2 min-w-[140px]"
                 >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
                   </svg>
                   Pesan via WhatsApp
                 </Button>
                 <Button
+                  type="button"
+                  variant="secondary"
+                  className="flex-1 gap-2 min-w-[140px]"
+                  onClick={() => {
+                    addToCart(selectedProduct);
+                    setIsDialogOpen(false);
+                    setIsAddToCartChoiceOpen(true);
+                  }}
+                >
+                  <ShoppingCart className="h-5 w-5 shrink-0" />
+                  Tambahkan ke keranjang
+                </Button>
+
+
+                <Button
+                  type="button"
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
-                  className="flex-1"
+                  className="flex-1 min-w-[140px]"
                 >
                   Tutup
                 </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={isAddToCartChoiceOpen} onOpenChange={setIsAddToCartChoiceOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Produk ditambahkan ke keranjang</AlertDialogTitle>
+            <AlertDialogDescription>
+              Mau lanjut mencari produk lain, atau langsung melihat isi keranjang?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel type="button">Lanjut cari produk</AlertDialogCancel>
+            <AlertDialogAction
+              type="button"
+              className="gap-2"
+              onClick={() => setIsCartOpen(true)}
+            >
+              <ShoppingCart className="h-4 w-4 shrink-0" />
+              Buka keranjang
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={isCartOpen} onOpenChange={setIsCartOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <ShoppingCart className="h-7 w-7 text-primary shrink-0" />
+              Keranjang belanja
+            </DialogTitle>
+            <DialogDescription className="text-base">
+              {cartCount === 0
+                ? "Belum ada barang. Buka detail produk dan pilih Tambahkan ke keranjang."
+                : `${cartCount} item — total ${formatIdr(cartTotal)}`}
+            </DialogDescription>
+          </DialogHeader>
+
+          {cart.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">
+              Keranjang masih kosong.
+            </p>
+          ) : (
+            <>
+              <ul className="divide-y rounded-lg border bg-muted/20 max-h-[min(50vh,420px)] overflow-y-auto">
+                {cart.map((line) => (
+                  <li
+                    key={line.key}
+                    className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 sm:p-4"
+                  >
+                    <img
+                      src={line.image}
+                      alt=""
+                      className="h-16 w-16 rounded-md object-contain bg-background border shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground line-clamp-2">{line.name}</p>
+                      <p className="text-sm text-muted-foreground">{line.brand}</p>
+                      <p className="text-sm text-primary font-medium mt-1">
+                        {formatIdr(line.price)} / item · subtotal {formatIdr(line.price * line.quantity)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center border rounded-md bg-background">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9"
+                          onClick={() => updateCartQty(line.key, line.quantity - 1)}
+                          aria-label="Kurangi"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <span className="w-8 text-center text-sm font-medium tabular-nums">
+                          {line.quantity}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9"
+                          onClick={() => updateCartQty(line.key, line.quantity + 1)}
+                          aria-label="Tambah"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => removeCartLine(line.key)}
+                        aria-label="Hapus dari keranjang"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2 border-t">
+                <p className="text-lg font-bold text-foreground">Total: {formatIdr(cartTotal)}</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" type="button" onClick={clearCart}>
+                    Kosongkan
+                  </Button>
+                  <Button
+                    type="button"
+                    className="gap-2 bg-[#25D366] hover:bg-[#20BA5A] text-white"
+                    onClick={() => handleWhatsAppCart()}
+                  >
+                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488" />
+                    </svg>
+                    Pesan keranjang via WhatsApp
+                  </Button>
+                </div>
               </div>
             </>
           )}

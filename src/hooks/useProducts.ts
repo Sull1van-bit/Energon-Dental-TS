@@ -6,6 +6,7 @@ export interface ProductItem {
   name: string;
   description: string;
   price: string;
+  discount?: number;
   image: string;
   stock?: number;
   category?: string;
@@ -45,6 +46,7 @@ export function useProducts(): {
               name,
               description,
               price,
+              discount,
               image,
               stock,
               brands (
@@ -95,6 +97,7 @@ console.log("productsError:", productsError); // tambah ini
                 typeof x.price === "number"
                   ? String(x.price)
                   : ((x.price as string) ?? "Contact for pricing"),
+              discount: typeof x.discount === "number" ? x.discount : Number(x.discount) || 0,
               image: (x.image as string) ?? "/placeholder.svg",
               stock: typeof x.stock === "number" ? x.stock : undefined,
               brand,

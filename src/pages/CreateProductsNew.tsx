@@ -29,6 +29,7 @@ const CreateProducts = ({ open, onClose, onCreated }: CreateProductsProps) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
+  const [discount, setDiscount] = useState('');
   const [stock, setStock] = useState<number | ''>('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [brandId, setBrandId] = useState<string>('');
@@ -72,6 +73,7 @@ const CreateProducts = ({ open, onClose, onCreated }: CreateProductsProps) => {
     setName('');
     setDescription('');
     setPrice('');
+    setDiscount('');
     setStock('');
     setImageFile(null);
     setBrandId('');
@@ -126,6 +128,7 @@ const CreateProducts = ({ open, onClose, onCreated }: CreateProductsProps) => {
         name: name.trim(),
         description: description.trim(),
         price: Number(price),
+        discount: discount.trim() === '' ? 0 : Number(discount),
         stock: Number(stock),
         image: publicUrl,
         brand_id: brandId,
@@ -232,7 +235,7 @@ const CreateProducts = ({ open, onClose, onCreated }: CreateProductsProps) => {
             />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Harga (IDR) *</Label>
               <Input
@@ -249,6 +252,28 @@ const CreateProducts = ({ open, onClose, onCreated }: CreateProductsProps) => {
                   }
                 }}
                 required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Diskon (%)</Label>
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                placeholder="0"
+                value={discount}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '') {
+                    setDiscount('');
+                    return;
+                  }
+                  const parsed = Number(value);
+                  if (!Number.isNaN(parsed) && parsed >= 0 && parsed <= 100) {
+                    setDiscount(value);
+                  }
+                }}
               />
             </div>
             

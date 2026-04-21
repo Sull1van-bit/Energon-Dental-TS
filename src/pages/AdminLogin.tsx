@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { signIn, error, loading, user } = useAuth();
 
@@ -56,16 +58,32 @@ const AdminLogin = () => {
               <label htmlFor="password" className="block text-xs mb-1">
                 Password
               </label>
-              <input
-                className="w-full border rounded p-2 outline-none focus:shadow-outline"
-                type="password"
-                name="password"
-                id="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <input
+                  className="w-full border rounded p-2 pr-10 outline-none focus:shadow-outline"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  id="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-gray-600 hover:text-gray-900 rounded"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" aria-hidden />
+                  ) : (
+                    <Eye className="h-4 w-4" aria-hidden />
+                  )}
+                </button>
+              </div>
             </div>
             {error && (
               <p className="text-sm text-red-600 mb-3">{error}</p>

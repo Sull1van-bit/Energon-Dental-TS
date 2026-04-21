@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -11,6 +12,7 @@ export interface Product {
   description?: string;
   stock?: number;
   price?: number;
+  discount?: number;
   image?: string;
   brand?: string;
   kategori?: string;
@@ -50,6 +52,7 @@ const Products = ({ reloadKey }: ProductsProps) => {
   const [editDescription, setEditDescription] = useState("");
   const [editStock, setEditStock] = useState<string>("");
   const [editPrice, setEditPrice] = useState<string>("");
+  const [editDiscount, setEditDiscount] = useState<string>("");
   const [editKategori, setEditKategori] = useState("");
   const [editBrand, setEditBrand] = useState("");
   const [editBrandId, setEditBrandId] = useState<string>("");
@@ -102,6 +105,7 @@ const Products = ({ reloadKey }: ProductsProps) => {
             description: p.description ?? undefined,
             stock: typeof p.stock === "number" ? p.stock : undefined,
             price: typeof p.price === "number" ? p.price : Number(p.price) || undefined,
+            discount: typeof p.discount === "number" ? p.discount : Number(p.discount) || 0,
             image: p.image ?? undefined,
             brand: (p.brands?.name as string) ?? undefined,
             brand_id: p.brand_id ?? undefined,
@@ -191,6 +195,9 @@ const Products = ({ reloadKey }: ProductsProps) => {
     setEditPrice(
       typeof product.price === "number" ? String(product.price) : ""
     );
+    setEditDiscount(
+      typeof product.discount === "number" ? String(product.discount) : "0"
+    );
     setEditKategori(product.kategori ?? "");
     setEditBrand(product.brand ?? "");
     setEditBrandId(product.brand_id ?? "");
@@ -218,6 +225,8 @@ const Products = ({ reloadKey }: ProductsProps) => {
       editStock.trim() === "" ? null : Number(editStock.replace(",", "."));
     const priceValue =
       editPrice.trim() === "" ? null : Number(editPrice.replace(",", "."));
+    const discountValue =
+      editDiscount.trim() === "" ? 0 : Number(editDiscount.replace(",", "."));
 
     if (Number.isNaN(stockValue as number) && stockValue !== null) {
       alert("Stok harus berupa angka yang valid.");
@@ -235,6 +244,10 @@ const Products = ({ reloadKey }: ProductsProps) => {
       alert("Harga tidak boleh bernilai negatif.");
       return;
     }
+    if (Number.isNaN(discountValue) || discountValue < 0 || discountValue > 100) {
+      alert("Diskon harus angka 0 sampai 100.");
+      return;
+    }
 
     setSavingEdit(true);
     try {
@@ -245,6 +258,7 @@ const Products = ({ reloadKey }: ProductsProps) => {
           description: trimmedDesc || null,
           stock: stockValue,
           price: priceValue,
+          discount: discountValue,
           brand_id: editBrandId || null,
           category_id: editCategoryId || null,
         })
@@ -265,6 +279,7 @@ const Products = ({ reloadKey }: ProductsProps) => {
                 description: trimmedDesc || undefined,
                 stock: stockValue === null ? undefined : stockValue,
                 price: priceValue === null ? undefined : priceValue,
+                discount: discountValue,
                 kategori: selectedCategory?.name || undefined,
                 brand: selectedBrand?.name || undefined,
                 brand_id: editBrandId || undefined,
@@ -365,6 +380,9 @@ const Products = ({ reloadKey }: ProductsProps) => {
                 Harga
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">
+                Diskon
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">
                 Foto
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider border-b border-gray-200">
@@ -400,6 +418,11 @@ const Products = ({ reloadKey }: ProductsProps) => {
                   {typeof product.price === "number"
                     ? formatRupiah(product.price)
                     : "Contact for pricing"}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                  {typeof product.discount === "number" && product.discount > 0
+                    ? `${product.discount}%`
+                    : "-"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                   {product.image ? (
@@ -441,7 +464,7 @@ const Products = ({ reloadKey }: ProductsProps) => {
             {visibleProducts.length === 0 && (
               <tr>
                 <td
-                  colSpan={9}
+                  colSpan={10}
                   className="px-6 py-6 text-center text-sm text-gray-500"
                 >
                   Tidak ada produk yang cocok dengan pencarian.
@@ -529,10 +552,11 @@ const Products = ({ reloadKey }: ProductsProps) => {
               <label className="text-sm font-medium text-gray-700">
                 Deskripsi
               </label>
-              <Input
+              <Textarea
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
-                placeholder="Deskripsi singkat produk"
+                placeholder="Deskripsi produk (boleh paragraf / baris baru)"
+                rows={4}
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -558,6 +582,19 @@ const Products = ({ reloadKey }: ProductsProps) => {
                   value={editPrice}
                   onChange={(e) => setEditPrice(e.target.value)}
                   placeholder="Kosongkan jika tidak ingin diubah"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-700">
+                  Diskon (%)
+                </label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={editDiscount}
+                  onChange={(e) => setEditDiscount(e.target.value)}
+                  placeholder="0-100"
                 />
               </div>
             </div>
